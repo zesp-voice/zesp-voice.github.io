@@ -1,7 +1,7 @@
 // topic.html — 주제 상세
 import {
-  db, collection, doc, getDoc, addDoc, query, orderBy, onSnapshot,
-  serverTimestamp, updateDoc
+  db, auth, collection, doc, getDoc, addDoc, query, orderBy, onSnapshot,
+  serverTimestamp, updateDoc, onAuthStateChanged
 } from "./firebase-init.js";
 import {
   DEFAULT_DEPARTMENTS, deptColorOf, colorHexOf, DEPT_COLOR_HEX,
@@ -19,6 +19,7 @@ let departments = DEFAULT_DEPARTMENTS;
 let stopwordsExtra = [];
 let allComments = [];
 let charts = { bar: null, donut: null, line: null };
+let isAdmin = false;
 
 if (!topicId) {
   document.getElementById("topic-loading").innerHTML = `
@@ -135,6 +136,19 @@ function renderCommentList() {
   `).join("");
 }
 
+function renderAnalytics() {
+  renderKPI();
+  renderWordcloud();
+  renderDeptDonut();
+  renderTimeLine();
+}
+
+function destroyCharts() {
+  for (const key of Object.keys(charts)) {
+    if (charts[key]) { charts[key].destroy(); charts[key] = null; }
+  }
+}
+
 function renderKPI() {
   $("#kpi-count").textContent = allComments.length.toLocaleString();
   const depts = new Set(allComments.map(c => c.department));
@@ -149,20 +163,22 @@ function renderWordcloud() {
   const counter = countKeywords(allComments, stopwordsExtra);
   const top = topKeywords(counter, { topN: 60, minCount: 3 });
   const canvas = $("#wordcloud");
+  const wrap = canvas.parentElement;
 
   if (!top.length) {
     $("#wc-empty").classList.remove("hidden");
-    canvas.style.display = "none";
+    wrap.style.display = "none";
     return;
   }
   $("#wc-empty").classList.add("hidden");
-  canvas.style.display = "block";
+  wrap.style.display = "block";
 
-  const cssWidth = canvas.parentElement.clientWidth;
-  canvas.width = cssWidth;
-  canvas.height = 320;
+  // 컨테이너의 고정 크기(width/height)를 캔버스 버퍼에 동기화 → 무한 확장 방지
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  canvas.style.width  = "100%";
+  canvas.style.height = "100%";
 
-  // wordcloud2.js global
   if (typeof WordCloud !== "undefined") {
     WordCloud(canvas, {
       list: toWordCloudList(top),
@@ -306,16 +322,29 @@ async function init() {
       const bm = b.createdAt?.toMillis?.() || 0;
       return bm - am;
     });
-    // renderCommentList는 정렬된 결과를 사용해야 하므로 임시 교체
     const original = allComments;
     allComments = sortedDesc;
     renderCommentList();
     allComments = original;
 
-    renderKPI();
-    renderWordcloud();
-    renderDeptDonut();
-    renderTimeLine();
+    // 분석은 관리자만 — 패널이 보일 때만 갱신
+    if (isAdmin) {
+      renderAnalytics();
+    }
+  });
+
+  // Auth 상태 → 분석 패널 토글
+  onAuthStateChanged(auth, (user) => {
+    isAdmin = !!user;
+    const panel = document.getElementById("analytics-panel");
+    if (isAdmin) {
+      panel.classList.remove("hidden");
+      // 이미 댓글이 로드된 상태라면 즉시 차트 그리기
+      if (allComments.length) renderAnalytics();
+    } else {
+      panel.classList.add("hidden");
+      destroyCharts();
+    }
   });
 
   // 이벤트 바인딩

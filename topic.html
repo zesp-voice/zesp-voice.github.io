@@ -69,58 +69,74 @@
 
   <hr class="divider">
 
-  <!-- KPI -->
-  <section class="section--tight">
-    <h2 class="h-section">실시간 현황</h2>
-    <div class="kpi-grid">
-      <div class="kpi">
-        <div class="kpi__lbl">총 의견 수</div>
-        <div class="kpi__num" id="kpi-count">0</div>
-        <div class="kpi__sub">실시간 업데이트</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__lbl">참여 본부</div>
-        <div class="kpi__num" id="kpi-depts">0</div>
-        <div class="kpi__sub">7개 본부 중</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__lbl">평균 글자 수</div>
-        <div class="kpi__num" id="kpi-avg">0</div>
-        <div class="kpi__sub">의견 1건당</div>
-      </div>
+  <!-- 분석 패널 (관리자 전용) -->
+  <div id="analytics-panel" class="hidden">
+    <div class="alert alert--notice" style="margin-bottom: var(--sp-5);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1 3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5l-9-4z"/></svg>
+      <div><b>관리자 전용 분석 영역</b>로그인한 관리자에게만 표시됩니다.</div>
     </div>
-  </section>
 
-  <!-- Charts -->
-  <section class="section--tight">
-    <h2 class="h-section">분석</h2>
-    <div class="chart-grid">
-      <div class="chart-card">
-        <div class="chart-card__title">자주 등장한 키워드</div>
-        <canvas id="wordcloud" class="wc-canvas"></canvas>
-        <div id="wc-empty" class="empty hidden" style="margin-top: var(--sp-4);">
-          <div class="empty__title">의견이 모이면 표시됩니다</div>
-          <div>최소 3건 이상 등장한 키워드만 시각화됩니다.</div>
+    <!-- KPI -->
+    <section class="section--tight">
+      <h2 class="h-section">실시간 현황</h2>
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi__lbl">총 의견 수</div>
+          <div class="kpi__num" id="kpi-count">0</div>
+          <div class="kpi__sub">실시간 업데이트</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__lbl">참여 본부</div>
+          <div class="kpi__num" id="kpi-depts">0</div>
+          <div class="kpi__sub">7개 본부 중</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__lbl">평균 글자 수</div>
+          <div class="kpi__num" id="kpi-avg">0</div>
+          <div class="kpi__sub">의견 1건당</div>
         </div>
       </div>
-      <div class="chart-card">
-        <div class="chart-card__title">상위 키워드</div>
-        <canvas id="bar-chart" class="chart-canvas"></canvas>
-      </div>
-    </div>
-    <div class="chart-grid" style="margin-top: var(--sp-5);">
-      <div class="chart-card">
-        <div class="chart-card__title">본부별 의견 분포</div>
-        <canvas id="donut-chart" class="chart-canvas"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-card__title">시간대별 의견 추이</div>
-        <canvas id="line-chart" class="chart-canvas"></canvas>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <hr class="divider">
+    <!-- Charts -->
+    <section class="section--tight">
+      <h2 class="h-section">분석</h2>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card__title">자주 등장한 키워드</div>
+          <div class="chart-canvas-wrap" style="position: relative; width: 100%; height: 320px;">
+            <canvas id="wordcloud"></canvas>
+          </div>
+          <div id="wc-empty" class="empty hidden" style="margin-top: var(--sp-4);">
+            <div class="empty__title">의견이 모이면 표시됩니다</div>
+            <div>최소 3건 이상 등장한 키워드만 시각화됩니다.</div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card__title">상위 키워드</div>
+          <div class="chart-canvas-wrap" style="position: relative; width: 100%; height: 280px;">
+            <canvas id="bar-chart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="chart-grid" style="margin-top: var(--sp-5);">
+        <div class="chart-card">
+          <div class="chart-card__title">본부별 의견 분포</div>
+          <div class="chart-canvas-wrap" style="position: relative; width: 100%; height: 280px;">
+            <canvas id="donut-chart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card__title">시간대별 의견 추이</div>
+          <div class="chart-canvas-wrap" style="position: relative; width: 100%; height: 280px;">
+            <canvas id="line-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+  </div>
 
   <!-- 댓글 리스트 -->
   <section class="section--tight">
