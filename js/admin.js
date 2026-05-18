@@ -1,76 +1,149 @@
-// admin.html — 관리자
+// admin.html — 관리자 (Firebase Auth 이메일/비밀번호)
 import {
-  db, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
-  query, orderBy, onSnapshot, serverTimestamp, Timestamp
+  db, auth, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
+  query, orderBy, onSnapshot, serverTimestamp, Timestamp,
+  signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail
 } from "./firebase-init.js";
 import {
   DEFAULT_DEPARTMENTS, ddayLabel, ddayBadgeClass, fmtDate, fmtDateTime,
-  isExpired, esc, sha256, toast, deptChipHTML
+  isExpired, esc, toast
 } from "./utils.js";
 import { countKeywords, topKeywords } from "./keywords.js";
 
 const $ = (s) => document.querySelector(s);
 
-const ADMIN_SESSION_KEY = "ej-cm-admin-token";
-const DEFAULT_PASSWORD = "eastar2026"; // 첫 사용 시 자동 시드 (사용자가 즉시 변경 권장)
+const EMAIL_DOMAIN = "@eastarjet.com";
 
 let departments = DEFAULT_DEPARTMENTS;
 let editingId = null;
 let currentQRTopicId = null;
+let topicsUnsub = null;
 
-// ── 인증 ────────────────────────────────────────────
-async function ensureAdminPassword() {
-  const ref = doc(db, "config", "admin");
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    const hash = await sha256(DEFAULT_PASSWORD);
-    await setDoc(ref, { passwordHash: hash, createdAt: serverTimestamp() });
-    console.warn("관리자 비밀번호가 'eastar2026'으로 초기화되었습니다. 즉시 변경하세요.");
-  }
+// ─────────────────────────────────────────────
+// 이메일 보완: 사번/아이디만 입력 시 @eastarjet.com 자동 추가
+// ─────────────────────────────────────────────
+function normalizeEmail(input) {
+  const v = (input || "").trim().toLowerCase();
+  if (!v) return "";
+  if (v.includes("@")) return v;
+  return v + EMAIL_DOMAIN;
 }
 
+// ─────────────────────────────────────────────
+// 초기 설정 도큐먼트 생성 (departments / stopwords)
+// ─────────────────────────────────────────────
 async function ensureDepartmentsConfig() {
-  const ref = doc(db, "config", "departments");
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    await setDoc(ref, { list: DEFAULT_DEPARTMENTS });
-  } else if (Array.isArray(snap.data().list)) {
-    departments = snap.data().list;
-  }
+  try {
+    const ref = doc(db, "config", "departments");
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, { list: DEFAULT_DEPARTMENTS });
+    } else if (Array.isArray(snap.data().list)) {
+      departments = snap.data().list;
+    }
+  } catch (e) { console.warn("departments init", e); }
 }
 
 async function ensureStopwordsConfig() {
-  const ref = doc(db, "config", "stopwords");
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    await setDoc(ref, { ko: [] }); // 클라이언트 stopword 사전이 기본 — 여기엔 사용자 추가만
+  try {
+    const ref = doc(db, "config", "stopwords");
+    const snap = await getDoc(ref);
+    if (!snap.exists()) await setDoc(ref, { ko: [] });
+  } catch (e) { console.warn("stopwords init", e); }
+}
+
+// ─────────────────────────────────────────────
+// 인증 흐름
+// ─────────────────────────────────────────────
+async function handleLogin() {
+  const email = normalizeEmail($("#email-input").value);
+  const pw = $("#pw-input").value;
+  if (!email || !pw) {
+    showAuthError("이메일과 비밀번호를 입력해주세요.");
+    return;
+  }
+  $("#login-btn").disabled = true;
+  $("#login-btn").textContent = "로그인 중…";
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+    // onAuthStateChanged 가 나머지 처리
+  } catch (e) {
+    const msg = friendlyAuthError(e.code) || e.message;
+    showAuthError(msg);
+  } finally {
+    $("#login-btn").disabled = false;
+    $("#login-btn").textContent = "로그인";
   }
 }
 
-async function tryLogin(pw) {
-  const hash = await sha256(pw);
-  const snap = await getDoc(doc(db, "config", "admin"));
-  if (!snap.exists()) return false;
-  return snap.data().passwordHash === hash;
+async function handleResetPassword() {
+  const email = normalizeEmail($("#email-input").value);
+  if (!email) {
+    showAuthError("비밀번호 재설정 메일을 받을 이메일을 먼저 입력해주세요.");
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showAuthError(`${email} 로 비밀번호 재설정 메일을 보냈습니다. 메일함을 확인해주세요.`, "success");
+  } catch (e) {
+    showAuthError(friendlyAuthError(e.code) || e.message);
+  }
 }
 
-function setAuthed(yes) {
-  if (yes) {
-    sessionStorage.setItem(ADMIN_SESSION_KEY, "1");
+function friendlyAuthError(code) {
+  const map = {
+    "auth/invalid-email":       "이메일 형식이 올바르지 않습니다.",
+    "auth/user-disabled":       "이 계정은 비활성화되어 있습니다.",
+    "auth/user-not-found":      "등록되지 않은 계정입니다. Firebase 콘솔에서 사용자를 추가하세요.",
+    "auth/wrong-password":      "비밀번호가 일치하지 않습니다.",
+    "auth/invalid-credential":  "이메일 또는 비밀번호가 올바르지 않습니다.",
+    "auth/too-many-requests":   "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.",
+    "auth/network-request-failed": "네트워크 연결을 확인해주세요.",
+  };
+  return map[code] || null;
+}
+
+function showAuthError(msg, type) {
+  const el = $("#auth-err");
+  el.classList.remove("hidden", "alert--success", "alert--danger");
+  el.classList.add(type === "success" ? "alert--success" : "alert--danger");
+  $("#auth-err-msg").innerHTML = type === "success"
+    ? `<b>전송 완료</b>${esc(msg)}`
+    : `<b>로그인 실패</b>${esc(msg)}`;
+}
+
+async function handleLogout() {
+  try {
+    if (topicsUnsub) { topicsUnsub(); topicsUnsub = null; }
+    await signOut(auth);
+  } catch (e) { console.error(e); }
+}
+
+// ─────────────────────────────────────────────
+// 인증 상태 변경 → 화면 전환
+// ─────────────────────────────────────────────
+function setAuthed(user) {
+  if (user) {
     $("#gate").classList.add("hidden");
     $("#admin-main").classList.remove("hidden");
     $("#logout-link").classList.remove("hidden");
-    bindAdminUI();
+    $("#current-user").classList.remove("hidden");
+    $("#current-user").textContent = user.email;
     listenTopics();
   } else {
-    sessionStorage.removeItem(ADMIN_SESSION_KEY);
     $("#gate").classList.remove("hidden");
     $("#admin-main").classList.add("hidden");
     $("#logout-link").classList.add("hidden");
+    $("#current-user").classList.add("hidden");
+    $("#current-user").textContent = "";
+    $("#auth-err").classList.add("hidden");
+    if (topicsUnsub) { topicsUnsub(); topicsUnsub = null; }
   }
 }
 
-// ── 주제 리스트 ──────────────────────────────────────
+// ─────────────────────────────────────────────
+// 주제 리스트
+// ─────────────────────────────────────────────
 function topicRowHTML(t, id) {
   const closed = t.status === "closed" || isExpired(t.dueAt);
   const dday = closed
@@ -103,14 +176,13 @@ function topicRowHTML(t, id) {
 
 function listenTopics() {
   const qAll = query(collection(db, "topics"), orderBy("createdAt", "desc"));
-  onSnapshot(qAll, (snap) => {
+  topicsUnsub = onSnapshot(qAll, (snap) => {
     const list = [];
     snap.forEach(d => list.push({ id: d.id, ...d.data() }));
     $("#admin-topics").innerHTML = list.length
       ? list.map(t => topicRowHTML(t, t.id)).join("")
       : `<div class="empty"><div class="empty__title">등록된 주제가 없습니다</div>+ 새 주제 등록 버튼으로 시작하세요.</div>`;
 
-    // 행별 이벤트
     $("#admin-topics").querySelectorAll("[data-act]").forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.dataset.id;
@@ -120,10 +192,15 @@ function listenTopics() {
         else if (act === "export") exportTopicCSV(id);
       });
     });
+  }, (err) => {
+    console.error("topics listen", err);
+    $("#admin-topics").innerHTML = `<div class="alert alert--danger">권한 오류: Firestore Rules가 게시되었는지 확인해주세요.</div>`;
   });
 }
 
-// ── 주제 편집 모달 ───────────────────────────────────
+// ─────────────────────────────────────────────
+// 주제 편집 모달
+// ─────────────────────────────────────────────
 function openEditModal(id) {
   editingId = id;
   $("#modal-title").textContent = id ? "주제 편집" : "새 주제 등록";
@@ -144,7 +221,6 @@ function openEditModal(id) {
     $("#topic-emoji").value = "✈️";
     $("#topic-title").value = "";
     $("#topic-desc").value = "";
-    // 기본 마감일: 오늘 + 14일
     const d = new Date(); d.setDate(d.getDate() + 14);
     $("#topic-due").value = d.toISOString().slice(0,10);
     $("#topic-status").value = "active";
@@ -166,19 +242,10 @@ async function saveTopic() {
   const emoji = $("#topic-emoji").value.trim() || "✈️";
   const status = $("#topic-status").value;
 
-  if (!title) {
-    showModalErr("주제 제목을 입력해주세요.");
-    return;
-  }
-  if (!dueStr) {
-    showModalErr("마감일을 선택해주세요.");
-    return;
-  }
+  if (!title) { showModalErr("주제 제목을 입력해주세요."); return; }
+  if (!dueStr) { showModalErr("마감일을 선택해주세요."); return; }
   const due = new Date(dueStr + "T23:59:59");
-  if (isNaN(due.getTime())) {
-    showModalErr("마감일 형식이 올바르지 않습니다.");
-    return;
-  }
+  if (isNaN(due.getTime())) { showModalErr("마감일 형식이 올바르지 않습니다."); return; }
 
   const payload = {
     title, description: desc, coverEmoji: emoji,
@@ -209,7 +276,6 @@ async function deleteCurrentTopic() {
   if (!confirm("이 주제와 모든 의견을 삭제합니다. 계속하시겠습니까?")) return;
 
   try {
-    // 하위 댓글 먼저 삭제
     const cSnap = await getDocs(collection(db, "topics", editingId, "comments"));
     await Promise.all(cSnap.docs.map(d => deleteDoc(d.ref)));
     await deleteDoc(doc(db, "topics", editingId));
@@ -219,10 +285,13 @@ async function deleteCurrentTopic() {
   }
 }
 
-// ── QR ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// QR
+// ─────────────────────────────────────────────
 function openQRModal(id) {
   currentQRTopicId = id;
-  const url = `${location.origin}${location.pathname.replace(/admin\.html$/, "")}topic.html?id=${encodeURIComponent(id)}`;
+  const base = location.href.replace(/\/admin\.html.*$/, "/");
+  const url = `${base}topic.html?id=${encodeURIComponent(id)}`;
   $("#qr-url").textContent = url;
   $("#qr-target").innerHTML = "";
 
@@ -246,7 +315,9 @@ function downloadQR() {
   a.click();
 }
 
-// ── Export ─────────────────────────────────────────
+// ─────────────────────────────────────────────
+// Export
+// ─────────────────────────────────────────────
 async function fetchAllCommentsOf(topicId) {
   const snap = await getDocs(query(collection(db, "topics", topicId, "comments"), orderBy("createdAt", "asc")));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -258,11 +329,7 @@ async function exportTopicCSV(topicId) {
     const tSnap = await getDoc(doc(db, "topics", topicId));
     const t = tSnap.data() || {};
     const comments = await fetchAllCommentsOf(topicId);
-
-    // 키워드 추출 (행마다 상위 5)
-    const rows = [
-      ["주제ID","주제","본부","의견","작성시각","주요키워드"]
-    ];
+    const rows = [["주제ID","주제","본부","의견","작성시각","주요키워드"]];
     for (const c of comments) {
       const tokens = topKeywords(countKeywords([c]), { topN: 5, minCount: 1 }).map(([w]) => w).join(",");
       rows.push([
@@ -304,7 +371,6 @@ async function exportAllCSV() {
 }
 
 function downloadCSV(rows, filename) {
-  // UTF-8 BOM (Excel 한글 깨짐 방지)
   const csv = "﻿" + rows.map(r => r.map(cell => {
     const s = String(cell ?? "");
     if (/[",\n\r]/.test(s)) return `"${s.replaceAll('"','""')}"`;
@@ -317,9 +383,10 @@ function downloadCSV(rows, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// ── Sheets 동기화 ────────────────────────────────────
+// ─────────────────────────────────────────────
+// Sheets 동기화
+// ─────────────────────────────────────────────
 async function triggerSheetsSync() {
-  // Apps Script Web App URL을 config/sheets에 저장하여 사용
   const cfg = await getDoc(doc(db, "config", "sheets"));
   const url = cfg.exists() ? cfg.data().webhookUrl : null;
   if (!url) {
@@ -336,42 +403,52 @@ async function triggerSheetsSync() {
   }
 }
 
-// ── UI 바인딩 ────────────────────────────────────────
-function bindAdminUI() {
+// ─────────────────────────────────────────────
+// UI 바인딩
+// ─────────────────────────────────────────────
+function bindUI() {
+  // 로그인 폼
+  $("#login-btn").addEventListener("click", handleLogin);
+  $("#reset-pw-btn").addEventListener("click", handleResetPassword);
+  $("#email-input").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#pw-input").focus(); });
+  $("#pw-input").addEventListener("keydown", (e) => { if (e.key === "Enter") handleLogin(); });
+  $("#logout-link").addEventListener("click", (e) => { e.preventDefault(); handleLogout(); });
+
+  // 이메일에 @ 들어가면 suffix 숨김
+  const emailInput = $("#email-input");
+  const suffix = $("#email-suffix");
+  emailInput.addEventListener("input", () => {
+    suffix.style.display = emailInput.value.includes("@") ? "none" : "";
+  });
+
+  // 관리자 본문
   $("#new-topic-btn").addEventListener("click", () => openEditModal(null));
   $("#topic-save").addEventListener("click", saveTopic);
   $("#topic-delete").addEventListener("click", deleteCurrentTopic);
   $("#export-all-btn").addEventListener("click", exportAllCSV);
   $("#sync-sheets-btn").addEventListener("click", triggerSheetsSync);
-  $("#qr-all-btn").addEventListener("click", () => toast($("#ops-msg"), "notice", "<b>주제별 QR 버튼을 사용하세요</b>각 주제 행의 QR 버튼으로 개별 생성합니다."));
   $("#qr-download").addEventListener("click", downloadQR);
   document.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", closeModals));
-  $("#logout-link").addEventListener("click", (e) => { e.preventDefault(); setAuthed(false); });
 }
 
-// ── 진입 ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// 진입
+// ─────────────────────────────────────────────
 async function init() {
-  try {
-    await ensureAdminPassword();
-    await ensureDepartmentsConfig();
-    await ensureStopwordsConfig();
-  } catch (e) {
-    console.warn("config init", e);
-  }
+  bindUI();
 
-  if (sessionStorage.getItem(ADMIN_SESSION_KEY) === "1") {
-    setAuthed(true);
-  }
-
-  $("#pw-submit").addEventListener("click", async () => {
-    const pw = $("#pw-input").value;
-    if (!pw) return;
-    const ok = await tryLogin(pw);
-    if (ok) setAuthed(true);
-    else $("#pw-err").classList.remove("hidden");
-  });
-  $("#pw-input").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") $("#pw-submit").click();
+  // 인증 상태 감지
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // 로그인됨 → 설정 도큐먼트 초기화 + 화면 전환
+      try {
+        await ensureDepartmentsConfig();
+        await ensureStopwordsConfig();
+      } catch (e) { console.warn("config init", e); }
+      setAuthed(user);
+    } else {
+      setAuthed(null);
+    }
   });
 }
 

@@ -1,17 +1,22 @@
 rules_version = '2';
 
-// 변화관리 의견 광장 — 완전 익명 정책
-// v1 한정 정책 (운영 시작 후 강화 권장):
-//  - topics·config·comments 모두 read public
-//  - 댓글 create: content/department 필드 검증 + 1500자 제한 + 마감 전
-//  - 댓글 update 금지 / delete는 관리자 회수용으로 일단 허용
-//  - topics·config write는 v1 임시 허용 (관리자 페이지에서 직접 호출)
-// v2 강화 시: Cloud Function + Anonymous Auth + custom claim(admin:true)
+// 변화관리 의견 광장 — 완전 익명 정책 + 관리자 인증
+//
+// 정책:
+//  - 모든 사용자(익명): topics·comments·config 읽기 가능
+//  - 익명 사용자: 댓글 create만 가능 (content/department 검증 + 마감 전)
+//  - Firebase Auth로 로그인한 사용자(=관리자): topics·config 모든 쓰기 + 댓글 삭제 가능
+//  - 일반 사용자가 회원가입하는 페이지가 없으므로 로그인된 사용자 = 관리자
+//    관리자 추가/삭제는 Firebase 콘솔 Authentication → Users 에서 수행
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
     // ── 헬퍼 함수 ────────────────────────────────────
+    function isAdmin() {
+      return request.auth != null;
+    }
+
     function isValidComment() {
       return request.resource.data.keys().hasAll(['content', 'department', 'createdAt'])
           && request.resource.data.content is string
@@ -31,21 +36,26 @@ service cloud.firestore {
     // ── 주제 ─────────────────────────────────────────
     match /topics/{topicId} {
       allow read: if true;
-      allow create, update, delete: if true;  // v1 임시
+      allow create, update, delete: if isAdmin();
 
       // ── 댓글 (완전 익명) ──────────────────────────
       match /comments/{commentId} {
         allow read: if true;
-        allow create: if isValidComment() && isBeforeDue(topicId);
-        allow update: if false;
-        allow delete: if true;  // v1 임시 (관리자 회수용)
+
+        // 익명 사용자 등록: 검증 + 마감 전
+        // 관리자: 무조건 가능
+        allow create: if isAdmin()
+                       || (isValidComment() && isBeforeDue(topicId));
+
+        allow update: if false;            // 누구도 수정 불가
+        allow delete: if isAdmin();        // 관리자만 회수 가능
       }
     }
 
-    // ── 설정값 (departments, stopwords, admin, sheets) ─
+    // ── 설정값 (departments, stopwords, sheets) ─────
     match /config/{docId} {
       allow read: if true;
-      allow write: if true;  // v1 임시
+      allow write: if isAdmin();
     }
 
     // ── 그 외 모두 차단 ──────────────────────────────

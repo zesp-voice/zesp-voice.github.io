@@ -8,6 +8,10 @@ import {
   updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot,
   serverTimestamp, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
 // ▼ 여기를 실제 값으로 교체 ─────────────────────────
 const firebaseConfig = {
@@ -23,10 +27,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 export {
-  db,
+  db, auth,
   collection, doc, getDoc, getDocs, addDoc, setDoc,
   updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot,
-  serverTimestamp, Timestamp
+  serverTimestamp, Timestamp,
+  signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail
 };

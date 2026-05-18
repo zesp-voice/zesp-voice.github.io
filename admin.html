@@ -24,28 +24,43 @@
     </a>
     <nav class="topbar__nav">
       <a href="./index.html">사용자 화면</a>
+      <span id="current-user" class="hidden" style="font-size: 12px; color: var(--ej-ink-3);"></span>
       <a href="#" id="logout-link" class="hidden">로그아웃</a>
     </nav>
   </div>
 </header>
 
-<!-- 비밀번호 게이트 -->
+<!-- 이메일/비밀번호 로그인 게이트 -->
 <section id="gate" class="section">
   <div class="wrap" style="max-width: 480px;">
     <div class="chart-card">
       <div class="eyebrow" style="margin-bottom: var(--sp-3);">ADMIN ACCESS</div>
       <h1 style="margin: 0 0 var(--sp-3); font-size: 32px; font-weight: 800; letter-spacing: -0.02em;">관리자 인증</h1>
-      <p class="text-mute text-small" style="margin: 0 0 var(--sp-5);">주제 관리·통계 조회·내보내기 기능에 접근하려면 비밀번호를 입력해주세요.</p>
+      <p class="text-mute text-small" style="margin: 0 0 var(--sp-5);">
+        Firebase 콘솔에 등록된 관리자 계정으로 로그인합니다. 계정 추가는 Firebase 콘솔의 Authentication → Users에서 수행합니다.
+      </p>
       <div class="stack">
         <div class="field">
-          <label for="pw-input">관리자 비밀번호</label>
-          <input id="pw-input" class="input" type="password" autocomplete="off" placeholder="••••••••">
+          <label for="email-input">이메일</label>
+          <div style="position: relative;">
+            <input id="email-input" class="input" type="text" autocomplete="username"
+                   placeholder="donguk" style="padding-right: 130px;">
+            <span id="email-suffix" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--ej-ink-3); font-size: 14px; font-weight: 500; pointer-events: none;">@eastarjet.com</span>
+          </div>
+          <div class="field__counter text-mute" style="text-align: left;">사번/아이디만 입력 시 자동으로 @eastarjet.com 이 붙습니다.</div>
         </div>
-        <div id="pw-err" class="alert alert--danger hidden">
+        <div class="field">
+          <label for="pw-input">비밀번호</label>
+          <input id="pw-input" class="input" type="password" autocomplete="current-password" placeholder="••••••••">
+        </div>
+        <div id="auth-err" class="alert alert--danger hidden">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 10 17H2z"/><path d="M12 10v4M12 17v.01"/></svg>
-          <div><b>비밀번호가 일치하지 않습니다</b>다시 시도해주세요.</div>
+          <div id="auth-err-msg"></div>
         </div>
-        <button id="pw-submit" class="btn btn--primary btn--lg">인증하기</button>
+        <button id="login-btn" class="btn btn--primary btn--lg">로그인</button>
+        <div class="row" style="justify-content: center;">
+          <button id="reset-pw-btn" class="btn btn--tertiary btn--sm">비밀번호를 잊으셨나요?</button>
+        </div>
       </div>
     </div>
   </div>
@@ -67,7 +82,7 @@
   </p>
 
   <!-- 운영 도구 -->
-  <div class="chart-card" style="margin-bottom: var(--sp-6);">
+  <div class="chart-card" style="margin-bottom: var(--sp-4);">
     <div class="row row--between" style="flex-wrap: wrap; gap: var(--sp-3);">
       <div>
         <div class="kpi__lbl">운영 도구</div>
@@ -76,7 +91,6 @@
       <div class="row">
         <button id="export-all-btn" class="btn btn--secondary btn--sm">전체 CSV 내보내기</button>
         <button id="sync-sheets-btn" class="btn btn--ghost btn--sm">Sheets 동기화</button>
-        <button id="qr-all-btn" class="btn btn--tertiary btn--sm">QR 일괄 생성</button>
       </div>
     </div>
     <div id="ops-msg" class="hidden" style="margin-top: var(--sp-3);"></div>
