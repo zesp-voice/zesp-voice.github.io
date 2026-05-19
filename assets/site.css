@@ -35,6 +35,34 @@
     align-items: start;
   }
   .topic-layout__compose { position: sticky; top: 88px; }  /* topbar 64 + 24 여백 */
+
+  /* 오른쪽 의견 리스트 — 뷰포트 높이 기준 max-height + 내부 스크롤 */
+  .topic-layout__list {
+    position: sticky;
+    top: 88px;
+    max-height: calc(100vh - 88px - var(--sp-6));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .topic-layout__list > .row { flex: 0 0 auto; }
+  .topic-layout__list > #comments-list {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;     /* 끝까지 스크롤 시 페이지 스크롤로 전염되지 않게 */
+    scrollbar-gutter: stable;
+    padding-right: var(--sp-2);        /* 스크롤바 옆 카드 호흡 */
+    margin-right: calc(-1 * var(--sp-2));
+  }
+  /* 깔끔한 스크롤바 (WebKit) */
+  .topic-layout__list > #comments-list::-webkit-scrollbar { width: 8px; }
+  .topic-layout__list > #comments-list::-webkit-scrollbar-track { background: transparent; }
+  .topic-layout__list > #comments-list::-webkit-scrollbar-thumb {
+    background: var(--ej-line-2); border-radius: var(--rad-pill);
+  }
+  .topic-layout__list > #comments-list::-webkit-scrollbar-thumb:hover {
+    background: var(--ej-ink-4);
+  }
 }
 
 /* ── Global focus-visible (키보드 접근성) ─────────────────── */
