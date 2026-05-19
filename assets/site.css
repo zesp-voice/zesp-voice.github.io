@@ -10,8 +10,8 @@
    ───────────────────────────────────────────────────────────── */
 
 /* ── Layout primitives ─────────────────────────────────────── */
-/* 좌우 여백: sm 20 / mobile 24 / md 48 — 화면 폭에 비례해 호흡감 확보 */
-.wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--sp-5); }
+/* 좌우 여백: 모바일 32 / md 48 — 카드 없이 텍스트만 노출되는 영역도 호흡감 확보 */
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--sp-6); }
 @media (min-width: 768px) { .wrap { padding: 0 var(--sp-7); } }
 
 .wrap--narrow { max-width: 520px; }
