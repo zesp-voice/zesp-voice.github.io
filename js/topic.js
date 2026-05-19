@@ -145,7 +145,7 @@ async function submitComment() {
   if (!/^[0-9]{7}$/.test(employeeId)) { toast(msgEl, "danger", "<b>사번은 숫자 7자리여야 합니다</b>"); return; }
   if (!content)  { toast(msgEl, "danger", "<b>의견 내용을 입력해주세요</b>"); return; }
   if (content.length > 1500)   { toast(msgEl, "danger", "<b>1,500자를 초과했습니다</b>"); return; }
-  if (!rawPw)    { toast(msgEl, "danger", "<b>삭제용 비밀번호를 입력해주세요</b>"); return; }
+  if (!rawPw)    { toast(msgEl, "danger", "<b>비밀번호를 입력해주세요</b>"); return; }
   if (rawPw.length < 4) { toast(msgEl, "danger", "<b>비밀번호는 4자 이상</b>"); return; }
 
   $("#submit-btn").disabled = true;

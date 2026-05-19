@@ -61,21 +61,23 @@
             <option value="">— 선택해주세요 —</option>
           </select>
         </div>
-        <div class="field">
-          <label for="employee-id">사번 <span style="color: var(--ej-red);">*</span></label>
-          <input id="employee-id" class="input" type="text" required
-                 inputmode="numeric" pattern="[0-9]{7}" maxlength="7"
-                 autocomplete="off" placeholder="7자리 사번">
+        <div class="compose-grid">
+          <div class="field">
+            <label for="employee-id">사번 <span style="color: var(--ej-red);">*</span></label>
+            <input id="employee-id" class="input" type="text" required
+                   inputmode="numeric" pattern="[0-9]{7}" maxlength="7"
+                   autocomplete="off" placeholder="7자리 사번">
+          </div>
+          <div class="field">
+            <label for="comment-password">비밀번호 <span style="color: var(--ej-red);">*</span></label>
+            <input id="comment-password" class="input" type="password" required minlength="4" maxlength="20"
+                   autocomplete="new-password" placeholder="4자 이상">
+          </div>
         </div>
         <div class="field">
           <label for="comment-text">의견 (최대 1,500자) <span style="color: var(--ej-red);">*</span></label>
           <textarea id="comment-text" class="textarea" maxlength="1500" placeholder="걱정·고민·궁금한 사항을 자유롭게 남겨주세요."></textarea>
           <div class="field__counter"><span id="counter">0</span> / 1500</div>
-        </div>
-        <div class="field">
-          <label for="comment-password">삭제용 비밀번호 <span style="color: var(--ej-red);">*</span></label>
-          <input id="comment-password" class="input" type="password" required minlength="4" maxlength="20"
-                 autocomplete="new-password" placeholder="본인 삭제용">
         </div>
         <div class="row row--end">
           <button id="submit-btn" class="btn btn--primary">의견 등록</button>

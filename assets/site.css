@@ -462,13 +462,20 @@
 @media (min-width: 768px) { .divider { margin: var(--sp-7) 0; } }
 
 /* ── 의견 작성 영역 컴팩트화 (sticky 컬럼·모바일 양쪽 유리) ── */
+.topic-layout__compose > .h-section { margin: 0 0 var(--sp-4); }
 #compose-area .stack--loose { gap: var(--sp-4); }
-#compose-area .textarea    { min-height: 96px; }
+#compose-area .textarea    { min-height: 150px; }
+.compose-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
 @media (max-width: 767px) {
   #compose-area              { padding: var(--sp-4); }
   #compose-area .input,
   #compose-area .select      { height: 44px; }
-  #compose-area .textarea    { min-height: 84px; }
+  #compose-area .textarea    { min-height: 132px; }
+  .compose-grid              { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ── 초소형(sm) — 카드 내부 패딩 축소로 좌우 여백 균형 ──── */
