@@ -89,22 +89,39 @@
   display: flex; align-items: center; justify-content: space-between;
   height: 64px;
 }
+/* ── Brand lockup ───────────────────────────────────────────── */
 .brand {
   display: flex; align-items: center; gap: var(--sp-3);
   text-decoration: none; color: var(--ej-ink);
 }
-.brand__star {
-  width: 24px; height: 24px; flex: 0 0 24px;
-  background: var(--ej-star); background-size: contain; background-repeat: no-repeat;
+.brand__icon {
+  width: 30px; height: 30px; flex: 0 0 30px;
+  background: url("../favicon.png") center/contain no-repeat;
+}
+.brand__lockup {
+  display: inline-grid;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
 }
 .brand__name {
   font-family: var(--ej-font-display);
-  font-weight: 700; font-size: 15px; letter-spacing: -0.01em;
+  font-weight: 800; font-size: 15px; line-height: 1.15; letter-spacing: -0.01em;
+  color: var(--ej-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .brand__sub {
   font-family: var(--ej-font-display);
-  font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--ej-red); font-weight: 800;
+  font-size: 10px; line-height: 1.15; letter-spacing: 0;
+  color: var(--ej-ink-4); font-weight: 800;
+  white-space: nowrap;
+  width: 100%;
+  text-align: justify;
+  text-align-last: justify;
+  text-justify: inter-character;
 }
 .topbar__nav { display: flex; gap: var(--sp-5); }
 .topbar__nav a {

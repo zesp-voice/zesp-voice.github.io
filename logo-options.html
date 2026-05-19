@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>로고 후보 · 변화관리 의견 광장</title>
+<meta name="theme-color" content="#D20015">
+<link rel="icon" type="image/png" sizes="128x128" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  body { background: var(--ej-surface); }
+  .preview-hero { padding: var(--sp-7) 0 var(--sp-4); }
+  .preview-hero h1 {
+    margin: 0;
+    font: 800 34px/1.2 var(--ej-font-display);
+    letter-spacing: -0.02em;
+  }
+  .preview-hero p {
+    margin: var(--sp-3) 0 0;
+    color: var(--ej-ink-3);
+    line-height: 1.7;
+  }
+  .option-grid {
+    display: grid;
+    gap: var(--sp-5);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 980px) {
+    .option-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .option-card {
+    background: var(--ej-paper);
+    border: 1px solid var(--ej-line);
+    border-radius: var(--rad-3);
+    overflow: hidden;
+  }
+  .option-card__head {
+    padding: var(--sp-4) var(--sp-5);
+    border-bottom: 1px solid var(--ej-line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+  }
+  .option-card__title {
+    margin: 0;
+    font: 800 16px/1.3 var(--ej-font-display);
+  }
+  .option-card__note {
+    color: var(--ej-ink-3);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .mock-browser {
+    background: white;
+    border-bottom: 1px solid var(--ej-line);
+  }
+  .mock-topbar {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--sp-5);
+    border-bottom: 1px solid var(--ej-line);
+    background: rgba(255,255,255,0.88);
+  }
+  .mock-nav {
+    display: flex;
+    gap: var(--sp-4);
+    color: var(--ej-ink-3);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .mock-body {
+    height: 112px;
+    padding: var(--sp-5);
+    background:
+      radial-gradient(ellipse at top right, color-mix(in srgb, var(--ej-red) 5%, transparent), transparent 58%),
+      var(--ej-paper);
+  }
+  .mock-title {
+    width: 62%;
+    height: 18px;
+    border-radius: var(--rad-pill);
+    background: var(--ej-line);
+    margin-bottom: var(--sp-3);
+  }
+  .mock-line {
+    width: 86%;
+    height: 10px;
+    border-radius: var(--rad-pill);
+    background: var(--ej-line-2);
+  }
+  .brand-option {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-width: 0;
+    color: var(--ej-ink);
+    text-decoration: none;
+  }
+  .brand-option__icon {
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    background: url("favicon.png") center/contain no-repeat;
+  }
+  .brand-option__logo {
+    width: auto;
+    display: block;
+  }
+  .brand-option__name {
+    font-family: var(--ej-font-display);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .brand-option__sub {
+    font-size: 10px;
+    line-height: 1.15;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ej-red);
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .brand-option--a .brand-option__lockup {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+  .brand-option--a .brand-option__logo { height: 18px; }
+  .brand-option--a .brand-option__name {
+    padding-left: var(--sp-3);
+    border-left: 1px solid var(--ej-line-2);
+    font-size: 15px;
+    line-height: 1.2;
+  }
+  .brand-option--b .brand-option__lockup {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  .brand-option--b .brand-option__logo { height: 17px; }
+  .brand-option--b .brand-option__name { font-size: 13px; }
+  .brand-option--c .brand-option__lockup {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .brand-option--c .brand-option__name {
+    font-size: 16px;
+    color: var(--ej-ink);
+  }
+  .brand-option--d .brand-option__icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+  .brand-option--d .brand-option__lockup {
+    display: inline-grid;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    min-width: 0;
+  }
+  .brand-option--d .brand-option__name { font-size: 15px; }
+  .brand-option--d .brand-option__sub {
+    color: var(--ej-ink-4);
+    letter-spacing: 0;
+    text-transform: none;
+    width: 100%;
+    text-align: justify;
+    text-align-last: justify;
+    text-justify: inter-character;
+  }
+  .mobile-frame {
+    width: 390px;
+    max-width: 100%;
+    margin: var(--sp-5) auto 0;
+    border: 1px solid var(--ej-line);
+    border-radius: 24px;
+    overflow: hidden;
+    background: white;
+  }
+  .mobile-frame .mock-topbar {
+    padding: 0 var(--sp-4);
+  }
+  .mobile-frame .mock-nav span:nth-child(2) { display: none; }
+  .mobile-frame .brand-option--a .brand-option__lockup {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .mobile-frame .brand-option--a .brand-option__logo { height: 14px; }
+  .mobile-frame .brand-option--a .brand-option__name {
+    padding-left: 0;
+    border-left: 0;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<section class="preview-hero">
+  <div class="wrap">
+    <div class="eyebrow">EASTARJET BRAND PREVIEW</div>
+    <h1>상단 로고 후보</h1>
+    <p>공식 파비콘과 워드마크를 유지하면서, 사내 의견 광장 성격에 맞게 과하지 않은 헤더 락업만 비교합니다.</p>
+  </div>
+</section>
+
+<main class="wrap section">
+  <div class="option-grid">
+    <article class="option-card">
+      <div class="option-card__head">
+        <h2 class="option-card__title">A안 · 공식 워드마크 + 서비스명</h2>
+        <span class="option-card__note">현재 Claude 작업안</span>
+      </div>
+      <div class="mock-browser">
+        <div class="mock-topbar">
+          <a class="brand-option brand-option--a" href="#">
+            <span class="brand-option__icon" aria-hidden="true"></span>
+            <span class="brand-option__lockup">
+              <img class="brand-option__logo" src="assets/eastar-logo.png" alt="이스타항공">
+              <span class="brand-option__name">변화관리 의견 광장</span>
+            </span>
+          </a>
+          <div class="mock-nav"><span>진행 중</span><span>지난 주제</span><span>관리자</span></div>
+        </div>
+        <div class="mock-body"><div class="mock-title"></div><div class="mock-line"></div></div>
+      </div>
+      <div class="mobile-frame">
+        <div class="mock-topbar">
+          <a class="brand-option brand-option--a" href="#">
+            <span class="brand-option__icon" aria-hidden="true"></span>
+            <span class="brand-option__lockup">
+              <img class="brand-option__logo" src="assets/eastar-logo.png" alt="이스타항공">
+              <span class="brand-option__name">변화관리 의견 광장</span>
+            </span>
+          </a>
+          <div class="mock-nav"><span>진행 중</span><span>지난 주제</span><span>관리자</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="option-card">
+      <div class="option-card__head">
+        <h2 class="option-card__title">B안 · 파비콘 + 워드마크 상하형</h2>
+        <span class="option-card__note">좁은 화면에서 안정적</span>
+      </div>
+      <div class="mock-browser">
+        <div class="mock-topbar">
+          <a class="brand-option brand-option--b" href="#">
+            <span class="brand-option__icon" aria-hidden="true"></span>
+            <span class="brand-option__lockup">
+              <img class="brand-option__logo" src="assets/eastar-logo.png" alt="이스타항공">
+              <span class="brand-option__name">변화관리 의견 광장</span>
+            </span>
+          </a>
+          <div class="mock-nav"><span>진행 중</span><span>지난 주제</span><span>관리자</span></div>
+        </div>
+        <div class="mock-body"><div class="mock-title"></div><div class="mock-line"></div></div>
+      </div>
+      <div class="mobile-frame">
+        <div class="mock-topbar">
+          <a class="brand-option brand-option--b" href="#">
+            <span class="brand-option__icon" aria-hidden="true"></span>
+            <span class="brand-option__lockup">
+              <img class="brand-option__logo" src="assets/eastar-logo.png" alt="이스타항공">
+              <span class="brand-option__name">변화관리 의견 광장</span>
+            </span>
+          </a>
+          <div class="mock-nav"><span>진행 중</span><span>지난 주제</span><span>관리자</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="option-card">
+      <div class="option-card__head">
+        <h2 class="option-card__title">C안 · 서비스명 중심</h2>
+        <span class="option-card__note">업무 도구 느낌이 강함</span>
+      </div>
+      <div class="mock-browser">
+        <div class="mock-topbar">
+          <a class="brand-option brand-option--c" href="#">
+            <span class="brand-option__icon" aria-hidden="true"></span>
+            <span class="brand-option__lockup">
+              <span class="brand-option__sub">EASTARJET</span>
+              <span class="brand-option__name">변화관리 의견 광장</span>
+            </span>
+          </a>
+          <div class="mock-nav"><span>진행 중</span><span>지난 주제</span><span>관리자</span></div>
+        </div>
+        <div class="mock-body"><div class="mock-title"></div><div class="mock-line"></div></div>
+      </div>
+      <div class="mobile-frame">
+        <div class="mock-topbar">
+          <a class="brand-option brand-option--c" href="#">
+            <span class="brand-option__icon" aria-hidden="true"></span>
+            <span class="brand-option__lockup">
+              <span class="brand-option__sub">EASTARJET</span>
+              <span class="brand-option__name">변화관리 의견 광장</span>
+            </span>
+          </a>
+          <div class="mock-nav"><span>진행 중</span><span>지난 주제</span><span>관리자</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="option-card">
+      <div class="option-card__head">
+        <h2 class="option-card__title">D안 · 심볼 강조형</h2>
+        <span class="option-card__note">가장 간결함</span>
+      </div>
+      <div class="mock-browser">
+        <div class="mock-topbar">
+          <a class="brand-option brand-option--d" href="#">
+            <span class="brand-option__icon" aria-hidden="true"></span>
+            <span class="brand-option__lockup">
+              <span class="brand-option__name">변화관리 의견 광장</span>
+              <span class="brand-option__sub">이스타항공 안전보안실</span>
+            </span>
+          </a>
+          <div class="mock-nav"><span>진행 중</span><span>지난 주제</span><span>관리자</span></div>
+        </div>
+        <div class="mock-body"><div class="mock-title"></div><div class="mock-line"></div></div>
+      </div>
+      <div class="mobile-frame">
+        <div class="mock-topbar">
+          <a class="brand-option brand-option--d" href="#">
+            <span class="brand-option__icon" aria-hidden="true"></span>
+            <span class="brand-option__lockup">
+              <span class="brand-option__name">변화관리 의견 광장</span>
+              <span class="brand-option__sub">이스타항공 안전보안실</span>
+            </span>
+          </a>
+          <div class="mock-nav"><span>진행 중</span><span>지난 주제</span><span>관리자</span></div>
+        </div>
+      </div>
+    </article>
+  </div>
+</main>
+</body>
+</html>
