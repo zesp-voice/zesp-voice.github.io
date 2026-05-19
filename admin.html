@@ -116,12 +116,21 @@
         <div class="row" style="gap: var(--sp-3);">
           <div class="field" style="flex: 0 0 80px;">
             <label for="topic-emoji">이모지</label>
-            <input id="topic-emoji" class="input" maxlength="4" value="✈️" style="text-align: center; font-size: 22px;">
+            <button id="emoji-picker-btn" class="emoji-picker__button" type="button" aria-haspopup="dialog" aria-expanded="false">
+              <span id="emoji-picker-current">✈️</span>
+            </button>
+            <input id="topic-emoji" type="hidden" value="✈️">
           </div>
           <div class="field" style="flex: 1;">
             <label for="topic-title">주제 제목</label>
             <input id="topic-title" class="input" maxlength="80" placeholder="예) 8월 대구 신규취항 관련 의견 수집">
           </div>
+        </div>
+        <div id="emoji-picker-panel" class="emoji-picker hidden" role="dialog" aria-label="이모지 선택">
+          <div class="emoji-picker__search">
+            <input id="emoji-search" class="input" type="search" placeholder="이모지 검색: 항공, 안전, 교육, 시스템...">
+          </div>
+          <div id="emoji-options" class="emoji-picker__grid"></div>
         </div>
         <div class="field">
           <label for="topic-desc">설명 (마크다운 미지원, 줄바꿈 가능)</label>

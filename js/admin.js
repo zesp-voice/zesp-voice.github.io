@@ -16,6 +16,44 @@ const $ = (s) => document.querySelector(s);
 const EMAIL_DOMAIN = "@eastarjet.com";
 const AUTO_LOGIN_KEY = "eastarAdminAutoLogin";
 const LAST_ID_KEY = "eastarAdminLastId";
+const EMOJI_OPTIONS = [
+  ["✈️", "항공 비행기 노선 취항"],
+  ["🛫", "출발 신규 취항 시작"],
+  ["🛬", "도착 복항 착륙"],
+  ["🧭", "방향 전략 항로"],
+  ["🗺️", "지도 노선 지역"],
+  ["📍", "위치 지점 공항"],
+  ["🧳", "여객 수하물 여행"],
+  ["🎫", "예약 발권 티켓"],
+  ["🛂", "출입국 공항 운송"],
+  ["🛡️", "안전 보안 보호"],
+  ["⚠️", "주의 위험 리스크"],
+  ["✅", "점검 확인 완료"],
+  ["📋", "절차 체크리스트 문서"],
+  ["📌", "공지 중요 안내"],
+  ["💬", "의견 소통 댓글"],
+  ["💡", "아이디어 개선 제안"],
+  ["🔄", "변경 전환 프로세스"],
+  ["📈", "성과 증가 지표"],
+  ["📊", "분석 통계 데이터"],
+  ["🧩", "문제 해결 조합"],
+  ["🛠️", "정비 개선 도구"],
+  ["⚙️", "시스템 설정 운영"],
+  ["🖥️", "시스템 IT 화면"],
+  ["📱", "모바일 앱"],
+  ["👥", "조직 임직원 협업"],
+  ["🤝", "협력 합의 지원"],
+  ["🎓", "교육 훈련 학습"],
+  ["📣", "안내 홍보 공지"],
+  ["⏱️", "시간 일정 마감"],
+  ["📅", "일정 날짜 계획"],
+  ["🏢", "본부 조직 사무실"],
+  ["🧪", "테스트 검증"],
+  ["🚧", "준비 공사 개선중"],
+  ["🌏", "국제 해외 노선"],
+  ["⭐", "포상 우수"],
+  ["🔥", "이슈 긴급 중요"]
+];
 
 let departments = DEFAULT_DEPARTMENTS;
 let editingId = null;
@@ -205,7 +243,7 @@ function openEditModal(id) {
     getDoc(doc(db, "topics", id)).then(snap => {
       if (!snap.exists()) return;
       const t = snap.data();
-      $("#topic-emoji").value = t.coverEmoji || "✈️";
+      setTopicEmoji(t.coverEmoji || "✈️");
       $("#topic-title").value = t.title || "";
       $("#topic-desc").value = t.description || "";
       const due = t.dueAt?.toDate ? t.dueAt.toDate() : null;
@@ -213,7 +251,7 @@ function openEditModal(id) {
       $("#topic-status").value = t.status || "active";
     });
   } else {
-    $("#topic-emoji").value = "✈️";
+    setTopicEmoji("✈️");
     $("#topic-title").value = "";
     $("#topic-desc").value = "";
     const d = new Date(); d.setDate(d.getDate() + 14);
@@ -221,13 +259,60 @@ function openEditModal(id) {
     $("#topic-status").value = "active";
   }
   $("#modal-err").classList.add("hidden");
+  closeEmojiPicker();
   $("#topic-modal").classList.remove("hidden");
 }
 
 function closeModals() {
   $("#topic-modal").classList.add("hidden");
   $("#qr-modal").classList.add("hidden");
+  closeEmojiPicker();
   editingId = null;
+}
+
+function setTopicEmoji(emoji) {
+  const value = emoji || "✈️";
+  $("#topic-emoji").value = value;
+  $("#emoji-picker-current").textContent = value;
+  renderEmojiOptions($("#emoji-search")?.value || "");
+}
+
+function openEmojiPicker() {
+  $("#emoji-picker-panel").classList.remove("hidden");
+  $("#emoji-picker-btn").setAttribute("aria-expanded", "true");
+  $("#emoji-search").focus();
+  renderEmojiOptions($("#emoji-search").value);
+}
+
+function closeEmojiPicker() {
+  $("#emoji-picker-panel").classList.add("hidden");
+  $("#emoji-picker-btn").setAttribute("aria-expanded", "false");
+}
+
+function toggleEmojiPicker() {
+  if ($("#emoji-picker-panel").classList.contains("hidden")) openEmojiPicker();
+  else closeEmojiPicker();
+}
+
+function renderEmojiOptions(filter = "") {
+  const q = filter.trim().toLowerCase();
+  const selected = $("#topic-emoji")?.value || "✈️";
+  const options = EMOJI_OPTIONS.filter(([emoji, label]) => {
+    return !q || emoji.includes(q) || label.toLowerCase().includes(q);
+  });
+  $("#emoji-options").innerHTML = options.length
+    ? options.map(([emoji, label]) => `
+        <button class="emoji-option" type="button" data-emoji="${esc(emoji)}" title="${esc(label)}" aria-label="${esc(label)}" aria-pressed="${emoji === selected ? "true" : "false"}">${esc(emoji)}</button>
+      `).join("")
+    : `<div class="text-small text-mute" style="grid-column: 1 / -1; padding: var(--sp-3);">검색 결과가 없습니다.</div>`;
+
+  $("#emoji-options").querySelectorAll("[data-emoji]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      setTopicEmoji(btn.dataset.emoji);
+      closeEmojiPicker();
+      $("#topic-title").focus();
+    });
+  });
 }
 
 async function saveTopic() {
@@ -434,6 +519,19 @@ function bindUI() {
 
   $("#auto-login").checked = localStorage.getItem(AUTO_LOGIN_KEY) === "1";
   $("#admin-id").value = localStorage.getItem(LAST_ID_KEY) || "";
+  $("#emoji-picker-btn").addEventListener("click", toggleEmojiPicker);
+  $("#emoji-search").addEventListener("input", (e) => renderEmojiOptions(e.target.value));
+  $("#emoji-search").addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeEmojiPicker();
+  });
+  document.addEventListener("click", (e) => {
+    const panel = $("#emoji-picker-panel");
+    const button = $("#emoji-picker-btn");
+    if (!panel.classList.contains("hidden") && !panel.contains(e.target) && !button.contains(e.target)) {
+      closeEmojiPicker();
+    }
+  });
+  renderEmojiOptions();
 
   // 관리자 본문
   $("#new-topic-btn").addEventListener("click", () => openEditModal(null));
