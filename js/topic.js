@@ -329,7 +329,7 @@ function closeDeleteModal() {
 }
 
 // ─────────────────────────────────────────────
-// 댓글 수정
+// 댓글 수정 (2단계: 비밀번호 확인 → 내용 수정)
 // ─────────────────────────────────────────────
 function handleEditClick(commentId, mode) {
   const c = allComments.find(x => x.id === commentId);
@@ -338,26 +338,70 @@ function handleEditClick(commentId, mode) {
   pendingEditId = commentId;
   pendingEditAdminMode = (mode === "admin");
 
-  // 관리자 모드: 비밀번호 필드 숨김. 작성자 모드: 표시
-  const pwField = $("#edit-pw-field");
-  const intro = $("#edit-intro");
-  if (pendingEditAdminMode) {
-    pwField.classList.add("hidden");
-    intro.textContent = "관리자 권한으로 수정합니다. 본부와 작성 시각은 바뀌지 않습니다.";
-  } else {
-    pwField.classList.remove("hidden");
-    intro.textContent = "작성 시 설정하신 비밀번호를 입력하고 내용을 수정해주세요. 본부와 작성 시각은 바뀌지 않습니다.";
-  }
-
+  // 공통 초기화
   $("#edit-pw-input").value = "";
   $("#edit-content").value = c.content || "";
   $("#edit-counter").textContent = (c.content || "").length;
+  $("#edit-pw-err").classList.add("hidden");
   $("#edit-err").classList.add("hidden");
+
+  if (pendingEditAdminMode) {
+    // 관리자: Step 1 스킵, 바로 내용 수정
+    showEditStep("content");
+    $("#edit-intro").textContent = "관리자 권한으로 수정합니다. 본부와 작성 시각은 바뀌지 않습니다.";
+  } else {
+    // 작성자: Step 1 비밀번호 확인부터
+    showEditStep("pw");
+    $("#edit-intro").textContent = "내용을 수정해주세요. 본부와 작성 시각은 바뀌지 않습니다.";
+  }
+
   $("#edit-modal").classList.remove("hidden");
   setTimeout(() => {
     if (pendingEditAdminMode) $("#edit-content").focus();
     else $("#edit-pw-input").focus();
   }, 100);
+}
+
+function showEditStep(step) {
+  const stepPw = $("#edit-step-pw");
+  const stepContent = $("#edit-step-content");
+  const btnNext = $("#edit-pw-next");
+  const btnConfirm = $("#edit-confirm");
+  if (step === "pw") {
+    stepPw.classList.remove("hidden");
+    stepContent.classList.add("hidden");
+    btnNext.classList.remove("hidden");
+    btnConfirm.classList.add("hidden");
+  } else {
+    stepPw.classList.add("hidden");
+    stepContent.classList.remove("hidden");
+    btnNext.classList.add("hidden");
+    btnConfirm.classList.remove("hidden");
+  }
+}
+
+async function verifyEditPassword() {
+  if (!pendingEditId) return;
+  const c = allComments.find(x => x.id === pendingEditId);
+  if (!c) { showEditPwErr("수정할 의견을 찾을 수 없습니다."); return; }
+  if (!c.passwordHash) { showEditPwErr("수정 가능한 의견이 아닙니다."); return; }
+
+  const pw = $("#edit-pw-input").value;
+  if (!pw) { showEditPwErr("비밀번호를 입력해주세요."); return; }
+
+  $("#edit-pw-next").disabled = true;
+  try {
+    const inputHash = await sha256(pw);
+    if (inputHash !== c.passwordHash) {
+      showEditPwErr("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    // 통과 → 내용 수정 단계로
+    showEditStep("content");
+    setTimeout(() => $("#edit-content").focus(), 50);
+  } finally {
+    $("#edit-pw-next").disabled = false;
+  }
 }
 
 async function confirmEdit() {
@@ -369,15 +413,6 @@ async function confirmEdit() {
   if (!newContent) { showEditErr("내용을 입력해주세요."); return; }
   if (newContent.length > 1500) { showEditErr("1,500자를 초과했습니다."); return; }
   if (newContent === (c.content || "")) { showEditErr("변경된 내용이 없습니다."); return; }
-
-  if (!pendingEditAdminMode) {
-    // 작성자 모드 — 비밀번호 검증
-    const pw = $("#edit-pw-input").value;
-    if (!pw) { showEditErr("비밀번호를 입력해주세요."); return; }
-    if (!c.passwordHash) { showEditErr("수정 가능한 의견이 아닙니다."); return; }
-    const inputHash = await sha256(pw);
-    if (inputHash !== c.passwordHash) { showEditErr("비밀번호가 일치하지 않습니다."); return; }
-  }
 
   $("#edit-confirm").disabled = true;
   try {
@@ -392,6 +427,11 @@ async function confirmEdit() {
   } finally {
     $("#edit-confirm").disabled = false;
   }
+}
+
+function showEditPwErr(msg) {
+  $("#edit-pw-err-msg").innerHTML = `<b>확인할 수 없습니다</b>${esc(msg)}`;
+  $("#edit-pw-err").classList.remove("hidden");
 }
 
 function showEditErr(msg) {
@@ -722,9 +762,10 @@ async function init() {
   $("#delete-pw-input").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmDelete(); });
   document.querySelectorAll("[data-close-delete]").forEach(el => el.addEventListener("click", closeDeleteModal));
 
-  // 수정 모달
+  // 수정 모달 (Step 1: 비밀번호 확인 → Step 2: 내용 수정)
+  $("#edit-pw-next").addEventListener("click", verifyEditPassword);
+  $("#edit-pw-input").addEventListener("keydown", (e) => { if (e.key === "Enter") verifyEditPassword(); });
   $("#edit-confirm").addEventListener("click", confirmEdit);
-  $("#edit-pw-input").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#edit-content").focus(); });
   $("#edit-content").addEventListener("input", (e) => {
     const len = e.target.value.length;
     const c = $("#edit-counter");

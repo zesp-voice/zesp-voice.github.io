@@ -211,7 +211,7 @@
   </div>
 </div>
 
-<!-- 의견 수정 모달 -->
+<!-- 의견 수정 모달 (2단계: 비밀번호 → 내용) -->
 <div id="edit-modal" class="modal-bg hidden">
   <div class="modal" style="max-width: 520px;" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
     <div class="modal__head">
@@ -219,28 +219,47 @@
       <button class="icon-btn" data-close-edit>✕</button>
     </div>
     <div class="modal__body">
-      <p id="edit-intro" class="text-mute text-small" style="margin: 0 0 var(--sp-4);">
-        작성 시 설정하신 비밀번호를 입력하고 내용을 수정해주세요. 본부와 작성 시각은 바뀌지 않습니다.
-      </p>
-      <div class="stack">
-        <div class="field" id="edit-pw-field">
-          <label for="edit-pw-input">비밀번호</label>
-          <input id="edit-pw-input" class="input" type="password" maxlength="20" autocomplete="off">
-        </div>
-        <div class="field">
-          <label for="edit-content">의견 (최대 1,500자)</label>
-          <textarea id="edit-content" class="textarea" maxlength="1500"></textarea>
-          <div class="field__counter"><span id="edit-counter">0</span> / 1500</div>
-        </div>
-        <div id="edit-err" class="alert alert--danger hidden">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 10 17H2z"/><path d="M12 10v4M12 17v.01"/></svg>
-          <div id="edit-err-msg"></div>
+
+      <!-- Step 1: 비밀번호 확인 -->
+      <div id="edit-step-pw">
+        <p class="text-mute text-small" style="margin: 0 0 var(--sp-4);">
+          작성 시 설정하신 비밀번호를 입력해주세요.
+        </p>
+        <div class="stack">
+          <div class="field">
+            <label for="edit-pw-input">비밀번호</label>
+            <input id="edit-pw-input" class="input" type="password" maxlength="20" autocomplete="off">
+          </div>
+          <div id="edit-pw-err" class="alert alert--danger hidden">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 10 17H2z"/><path d="M12 10v4M12 17v.01"/></svg>
+            <div id="edit-pw-err-msg"></div>
+          </div>
         </div>
       </div>
+
+      <!-- Step 2: 내용 수정 -->
+      <div id="edit-step-content" class="hidden">
+        <p id="edit-intro" class="text-mute text-small" style="margin: 0 0 var(--sp-4);">
+          내용을 수정해주세요. 본부와 작성 시각은 바뀌지 않습니다.
+        </p>
+        <div class="stack">
+          <div class="field">
+            <label for="edit-content">의견 (최대 1,500자)</label>
+            <textarea id="edit-content" class="textarea" maxlength="1500"></textarea>
+            <div class="field__counter"><span id="edit-counter">0</span> / 1500</div>
+          </div>
+          <div id="edit-err" class="alert alert--danger hidden">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 10 17H2z"/><path d="M12 10v4M12 17v.01"/></svg>
+            <div id="edit-err-msg"></div>
+          </div>
+        </div>
+      </div>
+
     </div>
     <div class="modal__foot">
       <button class="btn btn--tertiary" data-close-edit>취소</button>
-      <button id="edit-confirm" class="btn btn--primary">수정 저장</button>
+      <button id="edit-pw-next" class="btn btn--primary">다음</button>
+      <button id="edit-confirm" class="btn btn--primary hidden">수정 저장</button>
     </div>
   </div>
 </div>
