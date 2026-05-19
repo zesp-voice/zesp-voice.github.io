@@ -51,20 +51,29 @@
           </select>
         </div>
         <div class="field">
-          <label for="comment-text">의견 (최대 1,500자)</label>
-          <textarea id="comment-text" class="textarea" maxlength="1500" placeholder="걱정·고민·궁금한 사항을 자유롭게 남겨주세요. 작성자는 식별되지 않습니다."></textarea>
+          <label for="employee-id">사번 <span style="color: var(--ej-red);">*</span></label>
+          <input id="employee-id" class="input" type="text" required
+                 inputmode="numeric" pattern="[0-9]{7}" maxlength="7"
+                 autocomplete="off" placeholder="7자리 사번">
+          <div class="field__counter text-mute" style="text-align: left;">
+            사번은 관리자만 확인 가능합니다. 포상·집계 목적 외에 사용되지 않습니다.
+          </div>
+        </div>
+        <div class="field">
+          <label for="comment-text">의견 (최대 1,500자) <span style="color: var(--ej-red);">*</span></label>
+          <textarea id="comment-text" class="textarea" maxlength="1500" placeholder="걱정·고민·궁금한 사항을 자유롭게 남겨주세요. 사번은 비공개이며 본문에는 본부 정보만 함께 게시됩니다."></textarea>
           <div class="field__counter"><span id="counter">0</span> / 1500</div>
         </div>
         <div class="field">
-          <label for="comment-password">삭제용 비밀번호 (선택)</label>
-          <input id="comment-password" class="input" type="password" maxlength="20"
-                 autocomplete="new-password" placeholder="4자 이상 — 추후 본인이 의견을 지울 때 사용">
+          <label for="comment-password">삭제용 비밀번호 <span style="color: var(--ej-red);">*</span></label>
+          <input id="comment-password" class="input" type="password" required minlength="4" maxlength="20"
+                 autocomplete="new-password" placeholder="4자 이상">
           <div class="field__counter text-mute" style="text-align: left;">
-            비워두면 본인 삭제 불가 (관리자만 삭제 가능). 비밀번호는 안전하게 해시 저장되며 복구되지 않습니다.
+            본인이 의견 삭제 시 사용. 해시 저장·복구 불가.
           </div>
         </div>
         <div class="row row--between">
-          <span class="text-small text-mute">의견은 익명으로 저장되며 본부 정보만 통계에 사용됩니다.</span>
+          <span class="text-small text-mute">사번은 관리자만 열람. 외부 게시면에는 본부·의견만 표시됩니다.</span>
           <button id="submit-btn" class="btn btn--primary">의견 등록</button>
         </div>
         <div id="submit-msg" class="hidden"></div>

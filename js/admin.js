@@ -306,8 +306,18 @@ function downloadQR() {
 // Export
 // ─────────────────────────────────────────────
 async function fetchAllCommentsOf(topicId) {
-  const snap = await getDocs(query(collection(db, "topics", topicId, "comments"), orderBy("createdAt", "asc")));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // 공개 + 비공개 메타 동시 fetch 후 commentId 로 join
+  const [publicSnap, privateSnap] = await Promise.all([
+    getDocs(query(collection(db, "topics", topicId, "comments"), orderBy("createdAt", "asc"))),
+    getDocs(collection(db, "topics", topicId, "commentsPrivate"))
+  ]);
+  const privateMap = new Map();
+  privateSnap.forEach(d => privateMap.set(d.id, d.data()));
+  return publicSnap.docs.map(d => {
+    const pub = d.data();
+    const priv = privateMap.get(d.id) || {};
+    return { id: d.id, ...pub, employeeId: priv.employeeId || "", ipHash: priv.ipHash || "" };
+  });
 }
 
 async function exportTopicCSV(topicId) {
@@ -316,11 +326,11 @@ async function exportTopicCSV(topicId) {
     const tSnap = await getDoc(doc(db, "topics", topicId));
     const t = tSnap.data() || {};
     const comments = await fetchAllCommentsOf(topicId);
-    const rows = [["주제ID","주제","본부","의견","작성시각","주요키워드"]];
+    const rows = [["주제ID","주제","본부","사번","의견","작성시각","주요키워드"]];
     for (const c of comments) {
       const tokens = topKeywords(countKeywords([c]), { topN: 5, minCount: 1 }).map(([w]) => w).join(",");
       rows.push([
-        topicId, t.title || "", c.department || "", c.content || "",
+        topicId, t.title || "", c.department || "", c.employeeId || "", c.content || "",
         c.createdAt?.toDate ? fmtDateTime(c.createdAt) : "", tokens
       ]);
     }
@@ -335,7 +345,7 @@ async function exportAllCSV() {
   toast($("#ops-msg"), "notice", "<b>전체 데이터 내보내는 중…</b>");
   try {
     const tSnap = await getDocs(query(collection(db, "topics"), orderBy("createdAt", "desc")));
-    const rows = [["주제ID","주제","상태","마감일","본부","의견","작성시각","주요키워드"]];
+    const rows = [["주제ID","주제","상태","마감일","본부","사번","의견","작성시각","주요키워드"]];
     let total = 0;
     for (const tDoc of tSnap.docs) {
       const t = tDoc.data();
@@ -344,7 +354,7 @@ async function exportAllCSV() {
         const tokens = topKeywords(countKeywords([c]), { topN: 5, minCount: 1 }).map(([w]) => w).join(",");
         rows.push([
           tDoc.id, t.title || "", t.status || "", fmtDate(t.dueAt),
-          c.department || "", c.content || "",
+          c.department || "", c.employeeId || "", c.content || "",
           c.createdAt?.toDate ? fmtDateTime(c.createdAt) : "", tokens
         ]);
       }

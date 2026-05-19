@@ -166,6 +166,16 @@
 .badge--out   { background: transparent; color: var(--ej-red); border: 1.5px solid var(--ej-red); }
 .badge--gray  { background: var(--ej-line-2); color: var(--ej-ink-3); }
 
+/* 관리자 전용 사번 chip (commentsPrivate 매칭 — admin 만 표시됨) */
+.emp-id {
+  display: inline-flex; align-items: center;
+  font: 700 11px/1 var(--ej-font);
+  padding: 5px 10px; border-radius: var(--rad-pill);
+  letter-spacing: 0.04em; white-space: nowrap;
+  background: var(--ej-line); color: var(--ej-ink-2);
+  border: 1px dashed var(--ej-ink-4);
+}
+
 /* department chips (extended palette) */
 .dept {
   display: inline-flex; align-items: center; gap: 4px;

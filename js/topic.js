@@ -1,6 +1,6 @@
 // topic.html — 주제 상세
 import {
-  db, auth, collection, doc, getDoc, addDoc, deleteDoc, query, orderBy, onSnapshot,
+  db, auth, collection, doc, getDoc, addDoc, setDoc, deleteDoc, query, orderBy, onSnapshot,
   serverTimestamp, updateDoc, increment, onAuthStateChanged
 } from "./firebase-init.js";
 import {
@@ -24,6 +24,8 @@ let pendingDeleteId = null;
 let unsubTopic = null;
 let unsubComments = null;
 let unsubAuth = null;
+let unsubPrivate = null;
+const commentsPrivateMap = new Map();  // commentId → { employeeId, ipHash } (admin only)
 
 if (!topicId) {
   document.getElementById("topic-loading").innerHTML = `
@@ -82,35 +84,58 @@ function renderHeader(t) {
 
 async function submitComment() {
   const dept = $("#dept-select").value;
+  const employeeId = $("#employee-id").value.trim();
   const content = $("#comment-text").value.trim();
   const rawPw = $("#comment-password").value;
   const msgEl = $("#submit-msg");
 
-  if (!dept) { toast(msgEl, "danger", "<b>본부를 선택해주세요</b>익명 통계 분석을 위해 본부 정보가 필요합니다."); return; }
-  if (!content) { toast(msgEl, "danger", "<b>의견 내용을 입력해주세요</b>"); return; }
-  if (content.length > 1500) { toast(msgEl, "danger", "<b>1,500자를 초과했습니다</b>"); return; }
-  if (rawPw && rawPw.length < 4) { toast(msgEl, "danger", "<b>비밀번호는 4자 이상</b>설정하지 않으려면 비워두세요."); return; }
+  if (!dept)     { toast(msgEl, "danger", "<b>본부를 선택해주세요</b>익명 통계 분석을 위해 본부 정보가 필요합니다."); return; }
+  if (!employeeId)             { toast(msgEl, "danger", "<b>사번을 입력해주세요</b>포상·집계 목적으로 사용되며 관리자만 열람합니다."); return; }
+  if (!/^[0-9]{7}$/.test(employeeId)) { toast(msgEl, "danger", "<b>사번은 숫자 7자리여야 합니다</b>"); return; }
+  if (!content)  { toast(msgEl, "danger", "<b>의견 내용을 입력해주세요</b>"); return; }
+  if (content.length > 1500)   { toast(msgEl, "danger", "<b>1,500자를 초과했습니다</b>"); return; }
+  if (!rawPw)    { toast(msgEl, "danger", "<b>비밀번호를 입력해주세요</b>본인이 의견 삭제 시 사용합니다."); return; }
+  if (rawPw.length < 4) { toast(msgEl, "danger", "<b>비밀번호는 4자 이상</b>"); return; }
 
   $("#submit-btn").disabled = true;
   $("#submit-btn").textContent = "등록 중…";
 
   try {
     const ipHash = await dailyBrowserHash();
-    const payload = {
-      content, department: dept, createdAt: serverTimestamp(), ipHash
-    };
-    if (rawPw) payload.passwordHash = await sha256(rawPw);
-    await addDoc(collection(db, "topics", topicId, "comments"), payload);
-    // commentCount 증가 — 원자적 카운터(서버 단위 increment)
+    const passwordHash = await sha256(rawPw);
+
+    // 공개 도큐먼트 (본부·내용·시간·passwordHash)
+    const publicRef = await addDoc(collection(db, "topics", topicId, "comments"), {
+      content,
+      department: dept,
+      createdAt: serverTimestamp(),
+      passwordHash
+    });
+
+    // 비공개 메타 (사번·ipHash) — 같은 commentId 로 저장하여 1:1 매칭
+    // 두 컬렉션 모두 보안 규칙 통과해야 함. setDoc 으로 ID 직접 지정.
+    try {
+      await setDoc(doc(db, "topics", topicId, "commentsPrivate", publicRef.id), {
+        employeeId,
+        ipHash
+      });
+    } catch (e) {
+      // 비공개 메타 저장 실패 시 공개 댓글도 롤백
+      console.error("[commentsPrivate] write failed, rolling back public comment", e);
+      try { await deleteDoc(doc(db, "topics", topicId, "comments", publicRef.id)); } catch (_) {}
+      throw new Error("사번 저장에 실패했습니다. 다시 시도해주세요.");
+    }
+
+    // commentCount 증가 — 원자적 카운터
     try {
       await updateDoc(doc(db, "topics", topicId), { commentCount: increment(1) });
     } catch (e) {
       console.error("[commentCount] update failed", e);
-      // 의견 자체는 등록 성공이므로 사용자에게 별도 토스트 띄우지 않음
     }
 
     $("#comment-text").value = "";
     $("#comment-password").value = "";
+    $("#employee-id").value = "";
     $("#counter").textContent = "0";
     toast(msgEl, "success", "<b>의견이 등록되었습니다</b>참여해 주셔서 감사합니다.");
   } catch (e) {
@@ -143,11 +168,17 @@ function renderCommentList() {
     } else if (canAuthorDelete) {
       delBtn = `<button class="comment__del" data-id="${c.id}" data-mode="author" title="비밀번호로 삭제">삭제</button>`;
     }
+    // 관리자에게만 사번 표시 (commentsPrivateMap 은 admin only read 라 비admin 에서는 비어 있음)
+    const priv = isAdmin ? commentsPrivateMap.get(c.id) : null;
+    const empChip = priv && priv.employeeId
+      ? `<span class="emp-id" title="관리자 전용 — 사번 ${esc(priv.employeeId)}">사번 ${esc(priv.employeeId)}</span>`
+      : "";
     return `
     <div class="comment">
       <div class="comment__head">
         <div class="row" style="gap: var(--sp-2);">
           ${deptChipHTML(c.department, departments)}
+          ${empChip}
           <span class="comment__time">${esc(fmtRelative(c.createdAt))}</span>
         </div>
         ${delBtn}
@@ -174,6 +205,8 @@ async function handleDeleteClick(commentId, mode) {
     if (!confirm("관리자 권한으로 이 의견을 삭제합니다. 계속하시겠습니까?")) return;
     try {
       await deleteDoc(doc(db, "topics", topicId, "comments", commentId));
+      // 비공개 메타도 함께 삭제 (있으면). 없어도 무방.
+      try { await deleteDoc(doc(db, "topics", topicId, "commentsPrivate", commentId)); } catch (_) {}
     } catch (e) {
       alert("삭제 실패: " + e.message);
     }
@@ -207,7 +240,10 @@ async function confirmDelete() {
   }
   $("#delete-confirm").disabled = true;
   try {
+    // 공개 댓글 먼저 삭제 — passwordHash 일치 확인은 위에서 끝났고, Rules 는 passwordHash 존재만 검증
     await deleteDoc(doc(db, "topics", topicId, "comments", pendingDeleteId));
+    // 비공개 메타 정리 — Rules 가 매칭 공개 도큐먼트 부재 시 허용
+    try { await deleteDoc(doc(db, "topics", topicId, "commentsPrivate", pendingDeleteId)); } catch (_) {}
     closeDeleteModal();
   } catch (e) {
     showDeleteErr("삭제 실패: " + e.message);
@@ -423,16 +459,38 @@ async function init() {
     }
   });
 
-  // Auth 상태 → 분석 패널 + 댓글 리스트 재렌더(관리자 삭제 버튼)
+  // Auth 상태 → 분석 패널 + 댓글 리스트 재렌더(관리자 삭제 버튼) + 사번 메타 listener
   unsubAuth = onAuthStateChanged(auth, (user) => {
     isAdmin = !!user;
     const panel = document.getElementById("analytics-panel");
     if (isAdmin) {
       panel.classList.remove("hidden");
       if (allComments.length) renderAnalytics();
+      // 관리자 진입 시 commentsPrivate(사번·ipHash) 구독 시작 — Rules 가 admin only read
+      if (!unsubPrivate) {
+        unsubPrivate = onSnapshot(
+          collection(db, "topics", topicId, "commentsPrivate"),
+          (snap) => {
+            commentsPrivateMap.clear();
+            snap.forEach(d => commentsPrivateMap.set(d.id, d.data()));
+            // 사번 표시 갱신을 위해 리스트 재렌더
+            if (allComments.length) {
+              const sortedDesc = [...allComments].sort((a,b) => (b.createdAt?.toMillis?.()||0) - (a.createdAt?.toMillis?.()||0));
+              const original = allComments;
+              allComments = sortedDesc;
+              renderCommentList();
+              allComments = original;
+            }
+          },
+          (err) => console.error("[commentsPrivate] listen failed", err)
+        );
+      }
     } else {
       panel.classList.add("hidden");
       destroyCharts();
+      // 관리자 로그아웃 시 사번 listener 해제 + 메모리 비움
+      if (unsubPrivate) { unsubPrivate(); unsubPrivate = null; }
+      commentsPrivateMap.clear();
     }
     // 댓글 리스트는 상태와 관계없이 버튼 표시 차이만 있으므로 항상 재렌더
     if (allComments.length) {
@@ -473,6 +531,7 @@ window.addEventListener("pagehide", () => {
   if (unsubTopic) unsubTopic();
   if (unsubComments) unsubComments();
   if (unsubAuth) unsubAuth();
+  if (unsubPrivate) unsubPrivate();
   destroyCharts();
 });
 

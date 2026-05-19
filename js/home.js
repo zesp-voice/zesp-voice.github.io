@@ -1,6 +1,6 @@
 // index.html — 홈
 import {
-  db, collection, doc, getDoc, getDocs, query, where, orderBy, onSnapshot
+  db, collection, doc, getDoc, query, orderBy, onSnapshot
 } from "./firebase-init.js";
 import {
   ddayLabel, ddayBadgeClass, fmtDate, esc, isExpired
@@ -57,10 +57,9 @@ async function init() {
   // 정렬: 진행 중은 마감 빠른 순, 종료는 최근 마감 순으로
   const qAll = query(topicsCol, orderBy("dueAt", "desc"));
 
-  unsubTopics = onSnapshot(qAll, async (snap) => {
+  unsubTopics = onSnapshot(qAll, (snap) => {
     const active = [], closed = [];
     let totalComments = 0;
-    const deptSet = new Set();
 
     snap.forEach((d) => {
       const t = d.data();
@@ -78,13 +77,6 @@ async function init() {
       return ad - bd;
     });
 
-    // 참여 본부 집계 (별도 쿼리)
-    try {
-      const allComments = await getDocs(collection(db, "topics"));
-      // 댓글 본부 수집은 비용이 크므로 통계는 commentCount 사용, 본부 수는 별도 stat 컬렉션 사용 권장
-      // 여기서는 간략히 active 주제 수로 대체 안내
-    } catch (e) {}
-
     $("#active-topics").innerHTML = active.length
       ? active.map(t => renderTopicCard(t, t.id)).join("")
       : renderEmpty("진행 중인 주제가 없습니다");
@@ -98,7 +90,6 @@ async function init() {
 
     $("#stat-active").textContent = active.length;
     $("#stat-comments").textContent = totalComments.toLocaleString();
-    $("#stat-depts").textContent = deptSet.size || "—";
   }, (err) => {
     console.error("topics listen error", err);
     $("#active-topics").innerHTML = `
