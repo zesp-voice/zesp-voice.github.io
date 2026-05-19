@@ -53,6 +53,15 @@ function initListHeightSync() {
   window.addEventListener("resize", syncListHeight);
 }
 
+// 윈도우 리사이즈 시 워드클라우드 재렌더 (컨테이너 폭이 변하면 d3-cloud 가 새로 배치)
+let wordcloudResizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(wordcloudResizeTimer);
+  wordcloudResizeTimer = setTimeout(() => {
+    if (allComments.length) renderWordcloud();
+  }, 250);
+});
+
 // ── 차트 색상 토큰 추출 (tokens.css 변경 시 자동 반영) ─────
 const cssVar = (name, fallback) => {
   if (typeof document === "undefined") return fallback;
@@ -386,9 +395,11 @@ function renderWordcloud() {
   function drawCloud(placed) {
     // 기존 SVG 자식 제거
     while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
-    svgEl.setAttribute("width", width);
-    svgEl.setAttribute("height", height);
+    // width/height 속성 대신 viewBox 만 — CSS 가 실제 표시 크기 제어 (반응형 보장)
+    svgEl.removeAttribute("width");
+    svgEl.removeAttribute("height");
     svgEl.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
     const NS = "http://www.w3.org/2000/svg";
     const g = document.createElementNS(NS, "g");

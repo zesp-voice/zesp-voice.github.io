@@ -30,7 +30,7 @@
 @media (min-width: 1024px) {
   .topic-layout {
     display: grid;
-    grid-template-columns: minmax(360px, 440px) 1fr;
+    grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
     gap: var(--sp-6);
     align-items: start;
   }
@@ -172,10 +172,10 @@
 /* ── Cards ────────────────────────────────────────────────── */
 .card-grid {
   display: grid; gap: var(--sp-4);
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
-@media (min-width: 768px)  { .card-grid { gap: var(--sp-5); grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1040px) { .card-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px)  { .card-grid { gap: var(--sp-5); grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1040px) { .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 .topic-card {
   background: var(--ej-paper);
@@ -188,6 +188,7 @@
               box-shadow var(--dur-med) var(--ease-out),
               border-color var(--dur-med) var(--ease-out);
   position: relative; overflow: hidden;
+  min-width: 0;     /* grid item — 자식 content 가 컬럼을 부풀리지 못하게 */
 }
 .topic-card:hover {
   transform: translateY(-2px);
@@ -346,9 +347,10 @@
 /* ── KPI cards ────────────────────────────────────────────── */
 .kpi-grid {
   display: grid; gap: var(--sp-4);
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
-@media (min-width: 768px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.kpi { min-width: 0; overflow: hidden; }
 .kpi {
   background: var(--ej-paper);
   border: 1px solid var(--ej-line);
@@ -519,12 +521,14 @@
 .tab--active { color: var(--ej-red); border-bottom-color: var(--ej-red); }
 
 /* ── Chart container ──────────────────────────────────────── */
+/* minmax(0, ...) 로 grid item 의 min-width:auto 기본값을 0 으로 강제 —
+   자식 canvas/svg 의 intrinsic 크기가 컬럼을 부풀리는 현상 방지 */
 .chart-grid {
   display: grid; gap: var(--sp-4);
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 @media (min-width: 768px)  { .chart-grid { gap: var(--sp-5); } }
-@media (min-width: 1024px) { .chart-grid { grid-template-columns: 1.2fr 1fr; } }
+@media (min-width: 1024px) { .chart-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); } }
 /* 모바일에서 차트 영역 높이 축소 — 인라인 height(320/280px) 를 override */
 @media (max-width: 767px) {
   #analytics-public .chart-canvas-wrap,
@@ -535,8 +539,11 @@
   border: 1px solid var(--ej-line);
   border-radius: var(--rad-3);
   padding: var(--sp-5);
+  min-width: 0;        /* grid/flex 자식으로 들어갈 때 자식이 컬럼을 부풀리지 못하게 */
+  overflow: hidden;    /* 워드클라우드 단어가 캔버스 밖으로 흘러도 카드 밖으로 안 새어 나오게 */
 }
 .chart-card__title { font-size: 14px; font-weight: 800; margin: 0 0 var(--sp-4); }
+.chart-canvas-wrap { overflow: hidden; max-width: 100%; }
 .wc-canvas { width: 100%; height: 100%; display: block; }
 .chart-canvas { width: 100%; height: 280px; }
 
