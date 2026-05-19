@@ -1,13 +1,13 @@
 rules_version = '2';
 
-// 변화관리 의견 광장 — 완전 익명 정책 + 관리자 인증
+// 변화관리 의견 광장 — 익명 게시 + 사번 비공개 정책
 //
-// 정책:
-//  - 모든 사용자(익명): topics·comments·config 읽기 가능
-//  - 익명 사용자: 댓글 create만 가능 (content/department 검증 + 마감 전)
-//  - Firebase Auth로 로그인한 사용자(=관리자): topics·config 모든 쓰기 + 댓글 삭제 가능
-//  - 일반 사용자가 회원가입하는 페이지가 없으므로 로그인된 사용자 = 관리자
-//    관리자 추가/삭제는 Firebase 콘솔 Authentication → Users 에서 수행
+// 정책 (v2 2026-05-19):
+//  - 모든 사용자(익명): topics 와 comments(공개 영역) 읽기 가능, config 일부만 읽기 가능
+//  - 익명 사용자: comments + commentsPrivate 두 collection 에 동시 create (사번은 commentsPrivate 만)
+//  - commentsPrivate(사번 등)는 관리자만 read — 일반 사용자가 DevTools 로 직접 쿼리해도 차단
+//  - Firebase Auth 로그인한 사용자(=관리자): topics·config 쓰기 + 댓글 양쪽 삭제 + commentsPrivate read
+//  - 비밀번호는 사용자 작성 시 mandatory (passwordHash 필드 필수, sha-256 64자 hex)
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -18,13 +18,21 @@ service cloud.firestore {
     }
 
     function isValidComment() {
-      return request.resource.data.keys().hasAll(['content', 'department', 'createdAt'])
+      return request.resource.data.keys().hasAll(['content', 'department', 'createdAt', 'passwordHash'])
           && request.resource.data.content is string
           && request.resource.data.content.size() > 0
           && request.resource.data.content.size() <= 1500
           && request.resource.data.department is string
           && request.resource.data.department.size() > 0
-          && request.resource.data.department.size() <= 40;
+          && request.resource.data.department.size() <= 40
+          && request.resource.data.passwordHash is string
+          && request.resource.data.passwordHash.size() == 64;
+    }
+
+    function isValidPrivate() {
+      return request.resource.data.keys().hasOnly(['employeeId', 'ipHash'])
+          && request.resource.data.employeeId is string
+          && request.resource.data.employeeId.matches('^[0-9]{7}$');
     }
 
     function isBeforeDue(topicId) {
@@ -38,27 +46,52 @@ service cloud.firestore {
       allow read: if true;
       allow create, update, delete: if isAdmin();
 
-      // ── 댓글 (완전 익명) ──────────────────────────
+      // ── 공개 댓글 (본부·내용·시간·passwordHash) ──────────
       match /comments/{commentId} {
         allow read: if true;
 
-        // 익명 사용자 등록: 검증 + 마감 전
-        // 관리자: 무조건 가능
         allow create: if isAdmin()
                        || (isValidComment() && isBeforeDue(topicId));
 
-        allow update: if false;            // 누구도 수정 불가
+        // 수정: 관리자 항상 가능. 작성자는 마감 전 + content 만 변경, 핵심 필드(passwordHash·department·createdAt) 보존.
+        // editedAt 은 serverTimestamp 로만 설정 가능. 실제 비밀번호 검증은 클라이언트(v1 한계).
+        allow update: if isAdmin()
+                       || (
+                            request.resource.data.passwordHash == resource.data.passwordHash
+                         && request.resource.data.department == resource.data.department
+                         && request.resource.data.createdAt == resource.data.createdAt
+                         && request.resource.data.content is string
+                         && request.resource.data.content.size() > 0
+                         && request.resource.data.content.size() <= 1500
+                         && request.resource.data.editedAt == request.time
+                         && request.resource.data.keys().hasOnly(['content', 'department', 'createdAt', 'passwordHash', 'editedAt'])
+                         && isBeforeDue(topicId)
+                       );
 
-        // 삭제: 관리자 항상 가능, 작성자는 비밀번호 해시가 있는 댓글에 한해 허용
-        // (실제 비밀번호 검증은 클라이언트에서 수행 — v1 한계, Cloud Function으로 강화 권장)
+        // 삭제: 관리자 항상 가능, 작성자는 passwordHash 가 있는 댓글에 한해 허용
+        // (실제 비밀번호 검증은 클라이언트에서 수행 — v1 한계, Cloud Function 으로 강화 권장)
         allow delete: if isAdmin()
                        || resource.data.keys().hasAny(['passwordHash']);
+      }
+
+      // ── 비공개 메타 (사번·ipHash) — admin only read, 익명 create 허용 ──
+      // 같은 commentId 로 comments 와 1:1 매칭. 일반 사용자는 read 불가.
+      match /commentsPrivate/{commentId} {
+        allow read: if isAdmin();
+        allow update: if false;
+        // 삭제: 관리자 항상 가능. 작성자가 본인 의견 삭제 후 cleanup 하는 경우는
+        // 공개 댓글이 먼저 사라진 상태이므로 그때만 허용 (고아 메타 정리).
+        allow delete: if isAdmin()
+                       || !exists(/databases/$(database)/documents/topics/$(topicId)/comments/$(commentId));
+        allow create: if isAdmin()
+                       || (isValidPrivate() && isBeforeDue(topicId));
       }
     }
 
     // ── 설정값 (departments, stopwords, sheets) ─────
+    // sheets 도큐먼트는 webhookUrl·sharedSecret 등 민감정보 포함 → 관리자만 read
     match /config/{docId} {
-      allow read: if true;
+      allow read: if docId != "sheets" || isAdmin();
       allow write: if isAdmin();
     }
 

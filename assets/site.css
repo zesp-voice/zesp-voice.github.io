@@ -598,7 +598,8 @@
 .comment__time { font-size: 11px; color: var(--ej-ink-4); font-variant-numeric: tabular-nums; }
 .comment__body { font-size: 14px; line-height: 1.7; color: var(--ej-ink-2); white-space: pre-wrap; word-break: break-word; }
 .comment__actions { margin-top: var(--sp-3); display: flex; gap: var(--sp-2); }
-.comment__del {
+.comment__del,
+.comment__edit {
   border: none; background: transparent; cursor: pointer;
   color: var(--ej-ink-4); font: 600 11px/1 var(--ej-font);
   padding: 6px 10px; border-radius: var(--rad-2);
@@ -610,6 +611,13 @@
 .comment__del[data-mode="admin"]:hover {
   background: var(--ej-red); color: white;
 }
+.comment__edit:hover {
+  background: var(--ej-surface-2, #F3F4F5); color: var(--ej-ink);
+}
+.comment__edit[data-mode="admin"]:hover {
+  background: var(--ej-navy); color: white;
+}
+.comment__edited { margin-left: 2px; }
 
 /* ── Eyebrow / Title pattern ───────────────────────────────── */
 .eyebrow {
