@@ -1,7 +1,7 @@
 // topic.html — 주제 상세
 import {
   db, auth, collection, doc, getDoc, addDoc, deleteDoc, query, orderBy, onSnapshot,
-  serverTimestamp, updateDoc, onAuthStateChanged
+  serverTimestamp, updateDoc, increment, onAuthStateChanged
 } from "./firebase-init.js";
 import {
   DEFAULT_DEPARTMENTS, deptColorOf, colorHexOf, DEPT_COLOR_HEX,
@@ -21,6 +21,9 @@ let allComments = [];
 let charts = { bar: null, donut: null, line: null };
 let isAdmin = false;
 let pendingDeleteId = null;
+let unsubTopic = null;
+let unsubComments = null;
+let unsubAuth = null;
 
 if (!topicId) {
   document.getElementById("topic-loading").innerHTML = `
@@ -98,12 +101,13 @@ async function submitComment() {
     };
     if (rawPw) payload.passwordHash = await sha256(rawPw);
     await addDoc(collection(db, "topics", topicId, "comments"), payload);
-    // commentCount 증가 (간단 카운터, 정확하진 않지만 v1엔 충분)
+    // commentCount 증가 — 원자적 카운터(서버 단위 increment)
     try {
-      await updateDoc(doc(db, "topics", topicId), {
-        commentCount: (topicData?.commentCount || 0) + 1
-      });
-    } catch (e) { /* ignore */ }
+      await updateDoc(doc(db, "topics", topicId), { commentCount: increment(1) });
+    } catch (e) {
+      console.error("[commentCount] update failed", e);
+      // 의견 자체는 등록 성공이므로 사용자에게 별도 토스트 띄우지 않음
+    }
 
     $("#comment-text").value = "";
     $("#comment-password").value = "";
@@ -380,7 +384,7 @@ async function init() {
   populateDepartments();
 
   // 주제 도큐먼트 listen
-  onSnapshot(doc(db, "topics", topicId), (snap) => {
+  unsubTopic = onSnapshot(doc(db, "topics", topicId), (snap) => {
     if (!snap.exists()) {
       document.getElementById("topic-loading").innerHTML = `
         <div class="empty__title">존재하지 않는 주제입니다</div>
@@ -399,7 +403,7 @@ async function init() {
     collection(db, "topics", topicId, "comments"),
     orderBy("createdAt", "asc")
   );
-  onSnapshot(qComments, (snap) => {
+  unsubComments = onSnapshot(qComments, (snap) => {
     allComments = [];
     snap.forEach(d => allComments.push({ id: d.id, ...d.data() }));
     // 화면에 최신순으로 표시
@@ -420,7 +424,7 @@ async function init() {
   });
 
   // Auth 상태 → 분석 패널 + 댓글 리스트 재렌더(관리자 삭제 버튼)
-  onAuthStateChanged(auth, (user) => {
+  unsubAuth = onAuthStateChanged(auth, (user) => {
     isAdmin = !!user;
     const panel = document.getElementById("analytics-panel");
     if (isAdmin) {
@@ -463,5 +467,11 @@ async function init() {
     allComments = original;
   });
 }
+
+window.addEventListener("beforeunload", () => {
+  if (unsubTopic) unsubTopic();
+  if (unsubComments) unsubComments();
+  if (unsubAuth) unsubAuth();
+});
 
 init();

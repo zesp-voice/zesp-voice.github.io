@@ -8,6 +8,8 @@ import {
 
 const $ = (s) => document.querySelector(s);
 
+let unsubTopics = null;
+
 async function loadDepartmentsConfig() {
   try {
     const snap = await getDoc(doc(db, "config", "departments"));
@@ -55,7 +57,7 @@ async function init() {
   // 정렬: 진행 중은 마감 빠른 순, 종료는 최근 마감 순으로
   const qAll = query(topicsCol, orderBy("dueAt", "desc"));
 
-  onSnapshot(qAll, async (snap) => {
+  unsubTopics = onSnapshot(qAll, async (snap) => {
     const active = [], closed = [];
     let totalComments = 0;
     const deptSet = new Set();
@@ -107,5 +109,9 @@ async function init() {
     `;
   });
 }
+
+window.addEventListener("beforeunload", () => {
+  if (unsubTopics) unsubTopics();
+});
 
 init();

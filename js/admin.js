@@ -373,16 +373,29 @@ function downloadCSV(rows, filename) {
 // Sheets 동기화
 // ─────────────────────────────────────────────
 async function triggerSheetsSync() {
+  // config/sheets 는 Firestore Rules 상 관리자 인증 사용자만 read 가능 (webhookUrl·sharedSecret 보호)
   const cfg = await getDoc(doc(db, "config", "sheets"));
   const url = cfg.exists() ? cfg.data().webhookUrl : null;
+  const secret = cfg.exists() ? cfg.data().sharedSecret : null;
   if (!url) {
     toast($("#ops-msg"), "danger", "<b>Sheets Webhook URL이 설정되지 않았습니다</b>apps-script/sync-to-sheets.gs 를 배포한 후 URL을 config/sheets.webhookUrl에 저장하세요.");
     return;
   }
+  if (!secret) {
+    toast($("#ops-msg"), "danger", "<b>Sheets 인증 토큰이 없습니다</b>Apps Script 스크립트 속성에 등록한 SHARED_SECRET 과 동일한 값을 config/sheets.sharedSecret 에 저장하세요.");
+    return;
+  }
   toast($("#ops-msg"), "notice", "<b>Sheets에 동기화 중…</b>");
   try {
-    const res = await fetch(url, { method: "POST" });
+    const res = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify({ token: secret })
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json().catch(() => ({}));
+    if (data && data.error === "unauthorized") {
+      throw new Error("인증 토큰이 일치하지 않습니다.");
+    }
     toast($("#ops-msg"), "success", "<b>동기화 완료</b>Google Sheets에서 결과를 확인하세요.");
   } catch (e) {
     toast($("#ops-msg"), "danger", `<b>동기화 실패</b>${esc(e.message)}`);

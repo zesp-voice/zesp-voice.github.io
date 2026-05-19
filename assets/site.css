@@ -54,6 +54,10 @@
     radial-gradient(ellipse at top right, rgba(210,0,21,0.06), transparent 60%),
     radial-gradient(ellipse at bottom left, rgba(27,42,78,0.05), transparent 50%),
     var(--ej-paper);
+  background:
+    radial-gradient(ellipse at top right, color-mix(in srgb, var(--ej-red) 6%, transparent), transparent 60%),
+    radial-gradient(ellipse at bottom left, color-mix(in srgb, var(--ej-navy) 5%, transparent), transparent 50%),
+    var(--ej-paper);
   overflow: hidden;
 }
 .hero__star {
@@ -171,8 +175,8 @@
 }
 .dept[data-color="navy"]  { background: var(--ej-navy-tint);  color: var(--ej-navy); }
 .dept[data-color="teal"]  { background: var(--ej-teal-tint);  color: var(--ej-teal); }
-.dept[data-color="amber"] { background: var(--ej-amber-tint); color: #8a5d1a; }
-.dept[data-color="coral"] { background: var(--ej-coral-tint); color: #b34635; }
+.dept[data-color="amber"] { background: var(--ej-amber-tint); color: #6d4a0a; }
+.dept[data-color="coral"] { background: var(--ej-coral-tint); color: #8a2f20; }
 .dept[data-color="plum"]  { background: var(--ej-plum-tint);  color: var(--ej-plum); }
 .dept[data-color="gray-dark"] { background: var(--ej-line); color: var(--ej-gray-dark); }
 .dept[data-color="gray"]  { background: var(--ej-line-2); color: var(--ej-ink-3); }

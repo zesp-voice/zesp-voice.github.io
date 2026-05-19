@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://script.google.com; frame-ancestors 'none';">
 <title>주제 상세 · 변화관리 의견 광장</title>
 <meta name="theme-color" content="#D20015">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -162,9 +163,9 @@
 
 <!-- 의견 삭제 확인 모달 -->
 <div id="delete-modal" class="modal-bg hidden">
-  <div class="modal" style="max-width: 420px;">
+  <div class="modal" style="max-width: 420px;" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
     <div class="modal__head">
-      <h3 class="modal__title">의견 삭제</h3>
+      <h3 class="modal__title" id="delete-modal-title">의견 삭제</h3>
       <button class="icon-btn" data-close-delete>✕</button>
     </div>
     <div class="modal__body">
