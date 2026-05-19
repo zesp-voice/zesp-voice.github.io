@@ -59,10 +59,10 @@ const firebaseConfig = {
 
 ### 1.5 GitHub Pages 배포 (CLI 0개)
 
-#### 5.1 GitHub repo 만들기
-1. https://github.com → 우상단 `+` → **New repository**
-2. 이름: `eastar-change-mgmt` (private 가능)
-3. **Create repository**
+#### 5.1 GitHub Organization + repo 만들기
+1. https://github.com/organizations/new → Free → Organization 이름 정함 (예: `zesp-voice`)
+2. 만든 org 안에서 **New repository** → 이름은 **org명과 동일하게 `<org>.github.io`** (예: `zesp-voice.github.io`)
+3. **Public** + Initialize 옵션 전부 체크 해제 → **Create repository**
 
 #### 5.2 파일 업로드
 1. 새 repo 화면에서 **uploading an existing file** 링크 클릭
@@ -78,7 +78,7 @@ const firebaseConfig = {
 1. repo의 **Settings** → 좌측 **Pages**
 2. Source: **Deploy from a branch**
 3. Branch: `main` / Folder: `/ (root)` → **Save**
-4. 1~2분 후 상단에 표시되는 URL 확인: `https://<username>.github.io/eastar-change-mgmt/`
+4. 1~2분 후 상단에 표시되는 URL 확인: `https://<org>.github.io/` (현재 운영: `https://zesp-voice.github.io/`)
 
 #### 5.4 Firebase에 도메인 허용
 GitHub Pages 도메인에서 Firestore 접속하려면 허용 도메인에 추가:
@@ -98,7 +98,7 @@ Firebase Console에서 인증 활성화:
 
 ### 1.7 첫 로그인
 
-1. `https://<username>.github.io/eastar-change-mgmt/admin.html` 접속
+1. `https://zesp-voice.github.io/admin.html` 접속
 2. 이메일: 사번/아이디만 입력 (`@eastarjet.com` 자동 추가) 또는 전체 이메일
 3. 비밀번호 입력 → **로그인**
 4. 비밀번호 잊으면 **비밀번호를 잊으셨나요?** → 등록 이메일로 재설정 메일 발송
