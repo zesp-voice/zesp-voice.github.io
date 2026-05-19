@@ -5,8 +5,8 @@ import {
 } from "./firebase-init.js";
 import {
   DEFAULT_DEPARTMENTS, deptColorOf, colorHexOf, DEPT_COLOR_HEX,
-  ddayLabel, ddayBadgeClass, fmtDate, fmtDateTime, fmtRelative,
-  isExpired, esc, qs, deptChipHTML, emojiHTML, dailyBrowserHash, toast, sha256
+  fmtDate, fmtDateTime, fmtRelative,
+  esc, qs, deptChipHTML, emojiHTML, dailyBrowserHash, toast, sha256, ddayBadgeHTML, topicClosed
 } from "./utils.js";
 import { countKeywords, topKeywords } from "./keywords.js";
 
@@ -109,10 +109,8 @@ function populateDepartments() {
 }
 
 function renderHeader(t) {
-  const closed = t.status === "closed" || isExpired(t.dueAt);
-  const dday = closed
-    ? `<span class="badge badge--gray">의견 접수 종료</span>`
-    : `<span class="${ddayBadgeClass(t.dueAt)}">${esc(ddayLabel(t.dueAt))}</span>`;
+  const closed = topicClosed(t);
+  const dday = ddayBadgeHTML(t, "의견 접수 종료");
 
   $("#topic-header").innerHTML = `
     <div class="eyebrow">VOICE OF EASTARJET</div>

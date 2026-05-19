@@ -67,6 +67,17 @@ export function ddayBadgeClass(dueAt) {
   return "badge badge--out";                  // 여유: 1주 초과 (outline)
 }
 
+// 주제 종료 여부 — status=closed 이거나 마감일 경과
+export function topicClosed(t) {
+  return t.status === "closed" || isExpired(t.dueAt);
+}
+
+// D-day 배지 HTML — 종료 시 닫힘 라벨(페이지별 상이)을 인자로 받음
+export function ddayBadgeHTML(t, closedLabel = "종료") {
+  if (topicClosed(t)) return `<span class="badge badge--gray">${esc(closedLabel)}</span>`;
+  return `<span class="${ddayBadgeClass(t.dueAt)}">${esc(ddayLabel(t.dueAt))}</span>`;
+}
+
 // 날짜 포맷
 export function fmtDate(ts) {
   if (!ts) return "—";

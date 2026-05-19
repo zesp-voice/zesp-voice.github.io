@@ -3,7 +3,7 @@ import {
   db, collection, doc, getDoc, query, orderBy, onSnapshot
 } from "./firebase-init.js";
 import {
-  ddayLabel, ddayBadgeClass, fmtDate, esc, isExpired, emojiHTML
+  fmtDate, esc, emojiHTML, topicClosed, ddayBadgeHTML
 } from "./utils.js";
 
 const $ = (s) => document.querySelector(s);
@@ -19,10 +19,8 @@ async function loadDepartmentsConfig() {
 }
 
 function renderTopicCard(t, id) {
-  const closed = t.status === "closed" || isExpired(t.dueAt);
-  const dday = closed
-    ? `<span class="badge badge--gray">종료</span>`
-    : `<span class="${ddayBadgeClass(t.dueAt)}">${esc(ddayLabel(t.dueAt))}</span>`;
+  const closed = topicClosed(t);
+  const dday = ddayBadgeHTML(t);
 
   return `
     <a class="topic-card ${closed ? "topic-card--closed" : ""}" href="topic.html?id=${encodeURIComponent(id)}">
@@ -65,7 +63,7 @@ async function init() {
       const t = d.data();
       const id = d.id;
       const item = { id, ...t };
-      if (t.status === "closed" || isExpired(t.dueAt)) closed.push(item);
+      if (topicClosed(t)) closed.push(item);
       else active.push(item);
       totalComments += (t.commentCount || 0);
     });

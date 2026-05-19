@@ -6,8 +6,8 @@ import {
   setPersistence, browserLocalPersistence, browserSessionPersistence
 } from "./firebase-init.js";
 import {
-  DEFAULT_DEPARTMENTS, ddayLabel, ddayBadgeClass, fmtDate, fmtDateTime,
-  isExpired, esc, emojiHTML, toast
+  DEFAULT_DEPARTMENTS, fmtDate, fmtDateTime,
+  esc, emojiHTML, toast, ddayBadgeHTML
 } from "./utils.js";
 import { countKeywords, topKeywords } from "./keywords.js";
 
@@ -194,10 +194,7 @@ function setAuthed(user) {
 // 주제 리스트
 // ─────────────────────────────────────────────
 function topicRowHTML(t, id) {
-  const closed = t.status === "closed" || isExpired(t.dueAt);
-  const dday = closed
-    ? `<span class="badge badge--gray">종료</span>`
-    : `<span class="${ddayBadgeClass(t.dueAt)}">${esc(ddayLabel(t.dueAt))}</span>`;
+  const dday = ddayBadgeHTML(t);
 
   return `
     <div class="chart-card" data-id="${id}">
