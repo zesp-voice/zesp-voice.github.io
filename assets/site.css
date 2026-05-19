@@ -164,14 +164,19 @@
 }
 .hero__title em { font-style: normal; color: var(--ej-red); }
 
-/* 설명문은 모바일에서 숨김 (브랜드성 메시지보다 카드가 우선) */
+/* 설명문 — 모바일에서도 노출하되 폰트·여백 축소 */
 .hero__desc {
-  display: none;
-  font-size: clamp(16px, 1.8vw, 20px);
-  color: var(--ej-ink-3); line-height: 1.55; max-width: 720px;
-  margin: 0 0 var(--sp-7);
+  font-size: 13px; line-height: 1.5;                /* 모바일 */
+  color: var(--ej-ink-3); max-width: 720px;
+  margin: 0 0 var(--sp-3);                          /* 모바일: 12 */
 }
-@media (min-width: 768px) { .hero__desc { display: block; } }
+@media (min-width: 768px) {
+  .hero__desc {
+    font-size: clamp(16px, 1.8vw, 20px);
+    line-height: 1.55;
+    margin-bottom: var(--sp-7);
+  }
+}
 
 .hero__stats {
   display: flex; flex-wrap: wrap; gap: var(--sp-5);  /* 모바일: 48 → 24 */
