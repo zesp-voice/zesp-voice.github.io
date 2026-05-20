@@ -392,6 +392,20 @@
   border: 1px solid var(--ej-line);
   border-radius: var(--rad-3);
   background: var(--ej-paper);
+  transition: transform var(--dur-med) var(--ease-out),
+              box-shadow var(--dur-med) var(--ease-out),
+              border-color var(--dur-med) var(--ease-out);
+}
+.about-grid > div:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sh-2);
+  border-color: color-mix(in srgb, var(--ej-teal) 45%, var(--ej-line));
+}
+.about-grid > div:hover h2 { color: var(--ej-teal); }
+.about-grid h2 { transition: color var(--dur-med) var(--ease-out); }
+@media (prefers-reduced-motion: reduce) {
+  .about-grid > div { transition: none; }
+  .about-grid > div:hover { transform: none; }
 }
 .about-grid h2,
 .about-note h2 {
@@ -414,6 +428,19 @@
   background: var(--ej-paper);
   border: 1px solid var(--ej-line);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: background var(--dur-slow) var(--ease-out),
+              box-shadow var(--dur-med) var(--ease-out),
+              border-color var(--dur-med) var(--ease-out);
+}
+.about-note:hover {
+  background:
+    radial-gradient(ellipse at top right, color-mix(in srgb, var(--ej-teal) 12%, transparent), transparent 60%),
+    linear-gradient(135deg, var(--ej-paper), var(--ej-teal-tint));
+  box-shadow: var(--sh-2);
+  border-color: color-mix(in srgb, var(--ej-teal) 35%, var(--ej-line));
+}
+@media (prefers-reduced-motion: reduce) {
+  .about-note { transition: none; }
 }
 .about-note::before {
   content: "";
