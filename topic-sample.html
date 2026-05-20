@@ -39,6 +39,10 @@
 .comments-toggle        { display: flex; justify-content: center; margin-top: var(--sp-2); }
 .comments-toggle .btn   { min-width: 200px; }
 
+/* ── [요청 4] 헤더 ↔ 본문 사이 빈 공간 축소 (데스크톱 ~96px → 32px) ── */
+.topic-hero { padding-bottom: var(--sp-4); }                       /* 데스크톱 48 → 16 */
+.topic-layout__compose, .topic-layout__list { padding-top: var(--sp-4); }  /* 48 → 16 */
+
 /* ── 검수용 안내 배너 (샘플 전용 — 실제 적용 안 됨) ── */
 .sample-banner {
   background: #1B2A4E; color: #fff; font-size: 12.5px; line-height: 1.6;
@@ -70,7 +74,7 @@
   </div>
 </header>
 
-<section class="section--tight" style="background: linear-gradient(180deg, var(--ej-surface), var(--ej-paper));">
+<section class="section--tight topic-hero" style="background: linear-gradient(180deg, var(--ej-surface), var(--ej-paper));">
   <div class="wrap">
     <div class="eyebrow">VOICE OF EASTARJET</div>
     <div class="row" style="gap: var(--sp-3); margin: var(--sp-3) 0 var(--sp-4);">
