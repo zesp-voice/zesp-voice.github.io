@@ -900,8 +900,9 @@
   /* 모바일 작성 폼 컴팩트화 */
   .topic-layout__compose > .h-section       { font-size: 20px; margin: 0 0 var(--sp-3); }
   #compose-area .stack--loose               { gap: var(--sp-3); }
-  #compose-area .alert--notice              { padding: var(--sp-3) var(--sp-4); font-size: 12px; }
-  #compose-area .alert--notice .notice-list { margin-top: 4px; gap: 3px; }
+  #compose-area .alert--notice              { padding: var(--sp-3) var(--sp-4); font-size: 11px; }
+  #compose-area .alert--notice .notice-list { margin-top: 4px; gap: 3px; font-size: 11px; }
+  #compose-area .textarea                   { font-size: 12px; }
   #compose-area .field                      { gap: 4px; }
 }
 
@@ -919,7 +920,6 @@
   .topbar__inner { gap: var(--sp-3); }
   .brand { flex: 1 1 auto; }
   .brand__name { max-width: 150px; }
-  .brand__sub { letter-spacing: 1.5px; }  /* 모바일 보조제목 자간 — 데스크톱 톤에 맞춤 */
   .topbar__nav { gap: var(--sp-3); }
   .topbar__nav a { font-size: 12px; }
   #current-user { display: none !important; }
