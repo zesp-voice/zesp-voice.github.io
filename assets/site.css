@@ -401,7 +401,7 @@
   box-shadow: var(--sh-2);
   border-color: color-mix(in srgb, var(--ej-teal) 45%, var(--ej-line));
 }
-.about-grid > div:hover h2 { color: color-mix(in srgb, var(--ej-red) 65%, white); }
+.about-grid > div:hover h2 { color: color-mix(in srgb, var(--ej-red) 32%, var(--ej-ink-4)); }
 .about-grid h2 { transition: color var(--dur-med) var(--ease-out); }
 @media (prefers-reduced-motion: reduce) {
   .about-grid > div { transition: none; }
