@@ -7,7 +7,7 @@ tags: [project, change-management, web, firebase]
 
 # 변화관리 의견 광장
 
-이스타항공 전 임직원이 익명으로 변화관리 주제에 의견을 남기고, 본부별 키워드 분포를 분석해 변화관리 실행 자료로 활용하는 사내 웹사이트.
+이스타항공 전 임직원이 익명으로 변화관리 주제에 의견을 남기고, 부문별 키워드 분포를 분석해 변화관리 실행 자료로 활용하는 사내 웹사이트.
 
 - **공식 디자인 시스템**: EastarJet Design System (Crimson Red `#D20015`, PANTONE 200C)
 - **백엔드**: Firebase Firestore + Hosting
@@ -158,18 +158,22 @@ EastarJet 공식 디자인 시스템(Claude Design 번들)을 그대로 적용.
 ### 폰트 파일 추가 (선택)
 디자인 시스템 번들(`https://api.anthropic.com/v1/design/h/qwaIRNPOUGZiClT1vjHRvw`)을 받아 `eastarjet-design-system/project/assets/fonts/` 안의 `.otf`·`.ttf` 6개를 `public/assets/fonts/` 에 복사하면 브랜드 폰트가 자동 적용됨.
 
-### 본부별 색 매핑
-| 본부 | 색 토큰 | hex |
+### 부문별 색 매핑
+| 부문 | 색 토큰 | hex |
 |---|---|---|
-| 안전보안실 | `--ej-navy` | `#1B2A4E` |
-| 운항본부 | `--ej-teal` | `#2E7E80` |
-| 객실본부 | `--ej-coral` | `#F26A5A` |
-| 운송본부 | `--ej-amber` | `#E8A33D` |
-| 정비본부 | `--ej-gray-dark` | `#30383C` |
-| 경영지원본부 | `--ej-plum` | `#5C2440` |
+| 안전 | `--ej-navy` | `#1B2A4E` |
+| 보안 | `--ej-steel` | `#5B7C99` |
+| 운송 | `--ej-amber` | `#E8A33D` |
+| 운항 | `--ej-teal` | `#2E7E80` |
+| 객실 | `--ej-coral` | `#F26A5A` |
+| 정비 | `--ej-gray-dark` | `#30383C` |
+| 경영 | `--ej-plum` | `#5C2440` |
+| 통제 | `--ej-indigo` | `#4C4A8F` |
+| 커머셜 | `--ej-rose` | `#C77B8B` |
+| IT | `--ej-moss` | `#6E8B4A` |
 | 기타 | `--ej-gray` | `#9EA2A1` |
 
-본부 추가·변경은 Firestore `config/departments.list` 도큐먼트 직접 편집.
+부문 추가·변경은 Firestore `config/departments.list` 도큐먼트 직접 편집.
 
 ---
 
@@ -268,11 +272,11 @@ stopword 추가는 `public/js/stopwords-ko.js` 또는 Firestore `config/stopword
 ## 8. 검증 체크리스트 (배포 직전)
 
 - [ ] PC Chrome/Edge + iPhone Safari + Android Chrome 3종 접속 정상
-- [ ] QR로 모바일에서 댓글 작성 → 즉시 본부별 차트에 반영 (실시간 listener)
+- [ ] QR로 모바일에서 댓글 작성 → 즉시 부문별 차트에 반영 (실시간 listener)
 - [ ] 마감 시각(자정) 직전 댓글 입력 가능 / 직후 disable + 안내문
-- [ ] 시드 댓글 30개 + 5개 본부로 키워드 워드클라우드 시각적 가독성 확인
+- [ ] 시드 댓글 30개 + 5개 부문으로 키워드 워드클라우드 시각적 가독성 확인
 - [ ] 관리자 비밀번호 게이트 통과 → 주제 등록 → 즉시 홈에 노출
-- [ ] Sheets 동기화 트리거 후 컬럼 매핑(주제ID/본부/내용/시각) 일치
+- [ ] Sheets 동기화 트리거 후 컬럼 매핑(주제ID/부문/내용/시각) 일치
 - [ ] CSV export → Excel에서 한글 깨짐 없음 (UTF-8 BOM)
 - [ ] 만료 주제는 종료 섹션으로 자동 이동, 댓글 입력란 비활성
 
