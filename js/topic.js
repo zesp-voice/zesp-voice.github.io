@@ -6,7 +6,7 @@ import {
 import {
   DEFAULT_DEPARTMENTS, deptColorOf, colorHexOf, DEPT_COLOR_HEX,
   fmtDate, fmtDateTime, fmtRelative,
-  esc, qs, deptChipHTML, emojiHTML, dailyBrowserHash, toast, sha256, ddayBadgeHTML, topicClosed
+  esc, qs, deptChipHTML, emojiHTML, toast, sha256, ddayBadgeHTML, topicClosed
 } from "./utils.js";
 import { countKeywords, topKeywords } from "./keywords.js";
 
@@ -140,9 +140,12 @@ async function submitComment() {
   const rawPw = $("#comment-password").value;
   const msgEl = $("#submit-msg");
 
-  if (!dept)     { toast(msgEl, "danger", "<b>본부를 선택해주세요</b>"); return; }
-  if (!employeeId)             { toast(msgEl, "danger", "<b>사번을 입력해주세요</b>"); return; }
-  if (!/^[0-9]{7}$/.test(employeeId)) { toast(msgEl, "danger", "<b>사번은 숫자 7자리여야 합니다</b>"); return; }
+  if (!dept)     { toast(msgEl, "danger", "<b>부문을 선택해주세요</b>"); return; }
+  // 사번은 선택 입력 — 입력된 경우에만 형식 검증
+  if (employeeId && !/^[0-9]{7}$/.test(employeeId)) {
+    toast(msgEl, "danger", "<b>사번은 숫자 7자리여야 합니다</b>사번을 남기지 않으면 완전한 익명으로 등록됩니다.");
+    return;
+  }
   if (!content)  { toast(msgEl, "danger", "<b>의견 내용을 입력해주세요</b>"); return; }
   if (content.length > 1500)   { toast(msgEl, "danger", "<b>1,500자를 초과했습니다</b>"); return; }
   if (!rawPw)    { toast(msgEl, "danger", "<b>비밀번호를 입력해주세요</b>"); return; }
@@ -152,10 +155,9 @@ async function submitComment() {
   $("#submit-btn").textContent = "등록 중…";
 
   try {
-    const ipHash = await dailyBrowserHash();
     const passwordHash = await sha256(rawPw);
 
-    // 공개 도큐먼트 (본부·내용·시간·passwordHash)
+    // 공개 도큐먼트 (부문·내용·시간·passwordHash)
     const publicRef = await addDoc(collection(db, "topics", topicId, "comments"), {
       content,
       department: dept,
@@ -163,18 +165,19 @@ async function submitComment() {
       passwordHash
     });
 
-    // 비공개 메타 (사번·ipHash) — 같은 commentId 로 저장하여 1:1 매칭
-    // 두 컬렉션 모두 보안 규칙 통과해야 함. setDoc 으로 ID 직접 지정.
-    try {
-      await setDoc(doc(db, "topics", topicId, "commentsPrivate", publicRef.id), {
-        employeeId,
-        ipHash
-      });
-    } catch (e) {
-      // 비공개 메타 저장 실패 시 공개 댓글도 롤백
-      console.error("[commentsPrivate] write failed, rolling back public comment", e);
-      try { await deleteDoc(doc(db, "topics", topicId, "comments", publicRef.id)); } catch (_) {}
-      throw new Error("사번 저장에 실패했습니다. 다시 시도해주세요.");
+    // 비공개 메타 (사번) — 사번을 남긴 경우에만 생성. 미입력 시 완전 익명.
+    // 같은 commentId 로 저장하여 공개 댓글과 1:1 매칭.
+    if (employeeId) {
+      try {
+        await setDoc(doc(db, "topics", topicId, "commentsPrivate", publicRef.id), {
+          employeeId
+        });
+      } catch (e) {
+        // 비공개 메타 저장 실패 시 공개 댓글도 롤백
+        console.error("[commentsPrivate] write failed, rolling back public comment", e);
+        try { await deleteDoc(doc(db, "topics", topicId, "comments", publicRef.id)); } catch (_) {}
+        throw new Error("사번 저장에 실패했습니다. 다시 시도해주세요.");
+      }
     }
 
     // commentCount 증가 — 원자적 카운터
@@ -352,11 +355,11 @@ function handleEditClick(commentId, mode) {
   if (pendingEditAdminMode) {
     // 관리자: Step 1 스킵, 바로 내용 수정
     showEditStep("content");
-    $("#edit-intro").textContent = "관리자 권한으로 수정합니다. 본부와 작성 시각은 바뀌지 않습니다.";
+    $("#edit-intro").textContent = "관리자 권한으로 수정합니다. 부문과 작성 시각은 바뀌지 않습니다.";
   } else {
     // 작성자: Step 1 비밀번호 확인부터
     showEditStep("pw");
-    $("#edit-intro").textContent = "내용을 수정해주세요. 본부와 작성 시각은 바뀌지 않습니다.";
+    $("#edit-intro").textContent = "내용을 수정해주세요. 부문과 작성 시각은 바뀌지 않습니다.";
   }
 
   $("#edit-modal").classList.remove("hidden");
@@ -449,14 +452,14 @@ function closeEditModal() {
   pendingEditAdminMode = false;
 }
 
-// 공개 분석 — 모든 사용자에게 항상 노출 (자주 등장한 키워드 + 본부별 분포 + 총 건수)
+// 공개 분석 — 모든 사용자에게 항상 노출 (자주 등장한 키워드 + 부문별 분포 + 총 건수)
 function renderPublicAnalytics() {
   $("#public-count").textContent = `총: ${allComments.length.toLocaleString()}건`;
   renderWordcloud();
   renderDeptDonut();
 }
 
-// 관리자 전용 분석 — KPI(참여 본부, 평균 글자수) + 상위 키워드 + 시간대별 추이
+// 관리자 전용 분석 — KPI(참여 부문, 평균 글자수) + 상위 키워드 + 시간대별 추이
 function renderAdminAnalytics() {
   renderKPI();
   renderBarChart();
@@ -700,7 +703,7 @@ async function init() {
     renderCommentList();
     allComments = original;
 
-    // 공개 분석은 항상 갱신 (총 건수·워드클라우드·본부 도넛)
+    // 공개 분석은 항상 갱신 (총 건수·워드클라우드·부문 도넛)
     renderPublicAnalytics();
     // 관리자 차트는 admin 일 때만 추가 갱신
     if (isAdmin) {

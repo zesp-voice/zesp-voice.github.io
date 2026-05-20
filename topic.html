@@ -61,21 +61,21 @@
         <div class="alert alert--notice">
           <div>
             <b>익명으로 자유롭게 남겨주세요</b>
-            사번은 공개되지 않으며 안전 포상 대상자 선정 등 내부 확인에만 사용됩니다. 걱정·고민·궁금한 사항을 편하게 적어주세요. 부적절한 내용은 관리자 판단에 따라 삭제될 수 있습니다.
+            사번 입력은 선택 사항입니다. 사번을 남기지 않으면 완전한 익명으로 등록되며, 사번을 남기시면 안전포상(Safety People) 대상자 선정 등 내부 확인에만 사용되고 외부에 공개되지 않습니다. 부문을 선택하고 걱정·고민·궁금한 사항을 편하게 적어주세요. 부적절한 내용은 관리자 판단에 따라 삭제될 수 있습니다.
           </div>
         </div>
         <div class="field">
-          <label for="dept-select">본부 선택 <span style="color: var(--ej-red);">*</span></label>
+          <label for="dept-select">부문 선택 <span style="color: var(--ej-red);">*</span></label>
           <select id="dept-select" class="select" required>
             <option value="">— 선택해주세요 —</option>
           </select>
         </div>
         <div class="compose-grid">
           <div class="field">
-            <label for="employee-id">사번 <span style="color: var(--ej-red);">*</span></label>
-            <input id="employee-id" class="input" type="text" required
+            <label for="employee-id">사번 (선택)</label>
+            <input id="employee-id" class="input" type="text"
                    inputmode="numeric" pattern="[0-9]{7}" maxlength="7"
-                   autocomplete="off" placeholder="7자리 사번">
+                   autocomplete="off" placeholder="7자리 사번 (선택 입력)">
           </div>
           <div class="field">
             <label for="comment-password">비밀번호 <span style="color: var(--ej-red);">*</span></label>
@@ -109,7 +109,7 @@
       </div>
       <div class="row">
         <select id="filter-dept" class="select" style="height: 36px; padding: 0 36px 0 14px; font-size: 13px;">
-          <option value="">전체 본부</option>
+          <option value="">전체 부문</option>
         </select>
       </div>
     </div>
@@ -135,7 +135,7 @@
         </div>
       </div>
       <div class="chart-card">
-        <div class="chart-card__title">본부별 의견 분포</div>
+        <div class="chart-card__title">부문별 의견 분포</div>
         <div class="chart-canvas-wrap" style="position: relative; width: 100%; height: 280px;">
           <canvas id="donut-chart"></canvas>
         </div>
@@ -156,9 +156,9 @@
       <h2 class="h-section">실시간 현황</h2>
       <div class="kpi-grid">
         <div class="kpi">
-          <div class="kpi__lbl">참여 본부</div>
+          <div class="kpi__lbl">참여 부문</div>
           <div class="kpi__num" id="kpi-depts">0</div>
-          <div class="kpi__sub">7개 본부 중</div>
+          <div class="kpi__sub">11개 부문 중</div>
         </div>
         <div class="kpi">
           <div class="kpi__lbl">평균 글자 수</div>
@@ -247,7 +247,7 @@
       <!-- Step 2: 내용 수정 -->
       <div id="edit-step-content" class="hidden">
         <p id="edit-intro" class="text-mute text-small" style="margin: 0 0 var(--sp-4);">
-          내용을 수정해주세요. 본부와 작성 시각은 바뀌지 않습니다.
+          내용을 수정해주세요. 부문과 작성 시각은 바뀌지 않습니다.
         </p>
         <div class="stack">
           <div class="field">

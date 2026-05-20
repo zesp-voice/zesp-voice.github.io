@@ -2,10 +2,11 @@ rules_version = '2';
 
 // 변화관리 의견 광장 — 익명 게시 + 사번 비공개 정책
 //
-// 정책 (v2 2026-05-19):
+// 정책 (v3 2026-05-20):
 //  - 모든 사용자(익명): topics 와 comments(공개 영역) 읽기 가능, config 일부만 읽기 가능
-//  - 익명 사용자: comments + commentsPrivate 두 collection 에 동시 create (사번은 commentsPrivate 만)
-//  - commentsPrivate(사번 등)는 관리자만 read — 일반 사용자가 DevTools 로 직접 쿼리해도 차단
+//  - 익명 사용자: comments create. 사번을 남긴 경우에만 commentsPrivate 도 create
+//    (사번 미입력 시 완전 익명 — commentsPrivate 미생성. ipHash 등 다른 식별자도 저장하지 않음)
+//  - commentsPrivate(사번)는 관리자만 read — 일반 사용자가 DevTools 로 직접 쿼리해도 차단
 //  - Firebase Auth 로그인한 사용자(=관리자): topics·config 쓰기 + 댓글 양쪽 삭제 + commentsPrivate read
 //  - 비밀번호는 사용자 작성 시 mandatory (passwordHash 필드 필수, sha-256 64자 hex)
 
@@ -30,7 +31,7 @@ service cloud.firestore {
     }
 
     function isValidPrivate() {
-      return request.resource.data.keys().hasOnly(['employeeId', 'ipHash'])
+      return request.resource.data.keys().hasOnly(['employeeId'])
           && request.resource.data.employeeId is string
           && request.resource.data.employeeId.matches('^[0-9]{7}$');
     }
@@ -55,7 +56,7 @@ service cloud.firestore {
                            || request.resource.data.commentCount == resource.data.commentCount - 1)
                      );
 
-      // ── 공개 댓글 (본부·내용·시간·passwordHash) ──────────
+      // ── 공개 댓글 (부문·내용·시간·passwordHash) ──────────
       match /comments/{commentId} {
         allow read: if true;
 
@@ -83,7 +84,7 @@ service cloud.firestore {
                        || resource.data.keys().hasAny(['passwordHash']);
       }
 
-      // ── 비공개 메타 (사번·ipHash) — admin only read, 익명 create 허용 ──
+      // ── 비공개 메타 (사번) — admin only read, 사번 입력 시에만 익명 create ──
       // 같은 commentId 로 comments 와 1:1 매칭. 일반 사용자는 read 불가.
       match /commentsPrivate/{commentId} {
         allow read: if isAdmin();

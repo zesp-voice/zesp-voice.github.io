@@ -49,7 +49,7 @@ export function toWordCloudList(topList) {
   return topList.map(([w, n]) => [w, 10 + (60 * Math.sqrt(n / maxN))]);
 }
 
-// 본부별 키워드 분리 집계
+// 부문별 키워드 분리 집계
 export function countByDept(comments) {
   const byDept = new Map();
   for (const c of comments || []) {

@@ -1,16 +1,20 @@
 // 공통 유틸
 
 export const DEFAULT_DEPARTMENTS = [
-  { name: "안전보안실",   colorToken: "navy" },
-  { name: "운항본부",      colorToken: "teal" },
-  { name: "객실본부",      colorToken: "coral" },
-  { name: "운송본부",      colorToken: "amber" },
-  { name: "정비본부",      colorToken: "gray-dark" },
-  { name: "경영지원본부",  colorToken: "plum" },
-  { name: "기타",          colorToken: "gray" }
+  { name: "안전",   colorToken: "navy" },
+  { name: "보안",   colorToken: "steel" },
+  { name: "운송",   colorToken: "amber" },
+  { name: "운항",   colorToken: "teal" },
+  { name: "객실",   colorToken: "coral" },
+  { name: "정비",   colorToken: "gray-dark" },
+  { name: "경영",   colorToken: "plum" },
+  { name: "통제",   colorToken: "indigo" },
+  { name: "커머셜", colorToken: "rose" },
+  { name: "IT",     colorToken: "moss" },
+  { name: "기타",   colorToken: "gray" }
 ];
 
-// 본부 → Extended palette hex (Chart.js용)
+// 부문 → Extended palette hex (Chart.js용)
 export const DEPT_COLOR_HEX = {
   navy: "#1B2A4E",
   teal: "#2E7E80",
@@ -18,7 +22,11 @@ export const DEPT_COLOR_HEX = {
   coral: "#F26A5A",
   plum: "#5C2440",
   "gray-dark": "#30383C",
-  gray: "#9EA2A1"
+  gray: "#9EA2A1",
+  steel: "#5B7C99",
+  indigo: "#4C4A8F",
+  rose: "#C77B8B",
+  moss: "#6E8B4A"
 };
 
 // 글로벌 토큰 매핑 (이름이 변경될 수 있어 안전망)
@@ -165,7 +173,7 @@ export function toast(target, type, html) {
   target.classList.remove("hidden");
 }
 
-// 본부 색 토큰을 chip HTML로
+// 부문 색 토큰을 chip HTML로
 export function deptChipHTML(deptName, deptList) {
   const color = deptColorOf(deptName, deptList);
   return `<span class="dept" data-color="${color}">${esc(deptName || "기타")}</span>`;

@@ -571,6 +571,10 @@
 .dept[data-color="plum"]  { background: var(--ej-plum-tint);  color: var(--ej-plum); }
 .dept[data-color="gray-dark"] { background: var(--ej-line); color: var(--ej-gray-dark); }
 .dept[data-color="gray"]  { background: var(--ej-line-2); color: var(--ej-ink-3); }
+.dept[data-color="steel"]  { background: var(--ej-steel-tint);  color: #3E5A73; }
+.dept[data-color="indigo"] { background: var(--ej-indigo-tint); color: #3A3870; }
+.dept[data-color="rose"]   { background: var(--ej-rose-tint);   color: #9A4F5E; }
+.dept[data-color="moss"]   { background: var(--ej-moss-tint);   color: #4F6633; }
 
 /* ── Buttons ──────────────────────────────────────────────── */
 .btn {

@@ -47,7 +47,7 @@ const EMOJI_OPTIONS = [
   ["📣", "안내 홍보 공지"],
   ["⏱️", "시간 일정 마감"],
   ["📅", "일정 날짜 계획"],
-  ["🏢", "본부 조직 사무실"],
+  ["🏢", "부문 조직 사무실"],
   ["🧪", "테스트 검증"],
   ["🚧", "준비 공사 개선중"],
   ["🌏", "국제 해외 노선"],
@@ -435,7 +435,7 @@ async function exportTopicCSV(topicId) {
     const tSnap = await getDoc(doc(db, "topics", topicId));
     const t = tSnap.data() || {};
     const comments = await fetchAllCommentsOf(topicId);
-    const rows = [["주제ID","주제","본부","사번","의견","작성시각","주요키워드"]];
+    const rows = [["주제ID","주제","부문","사번","의견","작성시각","주요키워드"]];
     for (const c of comments) {
       const tokens = topKeywords(countKeywords([c]), { topN: 5, minCount: 1 }).map(([w]) => w).join(",");
       rows.push([
@@ -454,7 +454,7 @@ async function exportAllCSV() {
   toast($("#ops-msg"), "notice", "<b>전체 데이터 내보내는 중…</b>");
   try {
     const tSnap = await getDocs(query(collection(db, "topics"), orderBy("createdAt", "desc")));
-    const rows = [["주제ID","주제","상태","마감일","본부","사번","의견","작성시각","주요키워드"]];
+    const rows = [["주제ID","주제","상태","마감일","부문","사번","의견","작성시각","주요키워드"]];
     let total = 0;
     for (const tDoc of tSnap.docs) {
       const t = tDoc.data();

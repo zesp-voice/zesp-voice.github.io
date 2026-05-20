@@ -64,12 +64,20 @@
   --ej-coral:       #F26A5A;
   --ej-plum:        #5C2440;
   --ej-sand:        #E8DDC4;
+  --ej-steel:       #5B7C99;
+  --ej-indigo:      #4C4A8F;
+  --ej-rose:        #C77B8B;
+  --ej-moss:        #6E8B4A;
 
   --ej-navy-tint:   #E6E9F0;
   --ej-teal-tint:   #DCEDED;
   --ej-amber-tint:  #FBEFD7;
   --ej-coral-tint:  #FCE3DE;
   --ej-plum-tint:   #EFE0E8;
+  --ej-steel-tint:  #E6EBF0;
+  --ej-indigo-tint: #E7E6F1;
+  --ej-rose-tint:   #F6E6E9;
+  --ej-moss-tint:   #E9EEDF;
 
   /* ── SEMANTIC ───────────────────────────────────── */
   --ej-danger:      var(--ej-red);
