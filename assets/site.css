@@ -422,13 +422,12 @@
   border-radius: 4px;
   background: var(--ej-teal);
 }
-.about-note ul {
-  margin: 0;
-  padding-left: 1.2em;
-  color: var(--ej-ink-2);
-  line-height: 1.9;
+.about-note__lead {
+  margin: var(--sp-2) 0 var(--sp-4);
+  color: var(--ej-ink-3);
+  line-height: 1.7;
 }
-.about-note ul li::marker { color: var(--ej-ink-4); }
+.about-note .notice-list { color: var(--ej-ink-2); }
 
 /* ── Admin login polish ───────────────────────────────────── */
 .admin-login-card {
@@ -658,11 +657,14 @@
 .alert--success { background: var(--ej-teal-tint); color: var(--ej-teal); border-left: 4px solid var(--ej-teal); }
 .alert b { display: block; margin-bottom: 4px; font-weight: 800; }
 .notice-list {
-  margin: 6px 0 0; padding-left: 1.15em;
+  margin: 6px 0 0; padding: 0;
+  list-style-position: inside;
   display: flex; flex-direction: column; gap: 5px;
 }
 .notice-list li { line-height: 1.55; }
 .notice-list li::marker { color: var(--ej-ink-4); }
+/* 작성 폼 안내는 한 줄로 보이도록 글자 축소 */
+.alert--notice .notice-list { font-size: 12px; }
 
 /* ── KPI cards ────────────────────────────────────────────── */
 .kpi-grid {
