@@ -211,7 +211,7 @@ function topicRowHTML(t, id) {
           </div>
         </div>
         <div class="row">
-          <a class="btn btn--tertiary btn--sm" href="topic.html?id=${encodeURIComponent(id)}" target="_blank">미리보기</a>
+          <a class="btn btn--tertiary btn--sm" href="topic.html?id=${encodeURIComponent(id)}">미리보기</a>
           <button class="btn btn--ghost btn--sm" data-act="qr" data-id="${id}">QR</button>
           <button class="btn btn--ghost btn--sm" data-act="export" data-id="${id}">XLSX</button>
           <button class="btn btn--secondary btn--sm" data-act="edit" data-id="${id}">편집</button>
