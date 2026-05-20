@@ -9,6 +9,9 @@ import {
 
 const $ = (s) => document.querySelector(s);
 
+// 홈에 노출할 섹션별 최대 카드 수 (초과분은 주제 페이지에서)
+const HOME_LIMIT = 6;
+
 let unsubTopics = null;
 let unsubAuth = null;
 
@@ -56,21 +59,21 @@ async function init() {
       return ad - bd;
     });
 
-    // 홈에는 각 최근 3개만 — 전체는 주제 페이지에서
+    // 홈에는 각 최근 HOME_LIMIT 개만 — 전체는 주제 페이지에서
     $("#active-topics").innerHTML = active.length
-      ? active.slice(0, 3).map(t => renderTopicCard(t, t.id)).join("")
+      ? active.slice(0, HOME_LIMIT).map(t => renderTopicCard(t, t.id)).join("")
       : renderEmpty("진행 중인 주제가 없습니다");
 
     $("#closed-topics").innerHTML = closed.length
-      ? closed.slice(0, 3).map(t => renderTopicCard(t, t.id)).join("")
+      ? closed.slice(0, HOME_LIMIT).map(t => renderTopicCard(t, t.id)).join("")
       : renderEmpty("지난 주제가 없습니다");
 
     $("#active-count").textContent = active.length ? `${active.length}개 진행 중` : "";
     $("#closed-count").textContent = closed.length ? `${closed.length}개 보관됨` : "";
 
-    // 3개 초과 섹션에만 헤더 '전체보기' 링크 노출 (주제 페이지로 이동)
-    $("#active-more")?.classList.toggle("hidden", active.length <= 3);
-    $("#closed-more")?.classList.toggle("hidden", closed.length <= 3);
+    // HOME_LIMIT 초과 섹션에만 헤더 '전체보기' 링크 노출 (주제 페이지로 이동)
+    $("#active-more")?.classList.toggle("hidden", active.length <= HOME_LIMIT);
+    $("#closed-more")?.classList.toggle("hidden", closed.length <= HOME_LIMIT);
 
     $("#stat-active").textContent = active.length;
     $("#stat-comments").textContent = totalComments.toLocaleString();
