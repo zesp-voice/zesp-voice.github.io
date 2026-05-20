@@ -45,8 +45,11 @@ function syncListHeight() {
   const compose = document.querySelector(".topic-layout__compose");
   const list = document.querySelector(".topic-layout__list");
   if (!compose || !list) return;
-  if (window.innerWidth < 1024) {
-    list.style.maxHeight = "";  // 모바일/태블릿 — CSS fallback 사용
+  const layout = document.querySelector(".topic-layout");
+  const closed = layout && layout.classList.contains("topic-layout--closed");
+  if (window.innerWidth < 1024 || closed) {
+    // 모바일/태블릿 또는 마감 주제(단일 컬럼) — 높이 제한 없이 자연 흐름
+    list.style.maxHeight = "";
     return;
   }
   list.style.maxHeight = compose.offsetHeight + "px";
@@ -136,10 +139,10 @@ function renderHeader(t) {
     </div>
   `;
 
-  if (closed) {
-    $("#compose-area").classList.add("hidden");
-    $("#closed-notice").classList.remove("hidden");
-  }
+  // 마감 주제 — 단일 컬럼 전환(작성 컬럼 숨김 + 목록 전폭) + 마감 안내 배너
+  const layout = document.querySelector(".topic-layout");
+  if (layout) layout.classList.toggle("topic-layout--closed", closed);
+  $("#closed-notice").classList.toggle("hidden", !closed);
 }
 
 async function submitComment() {
