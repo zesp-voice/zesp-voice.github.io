@@ -392,20 +392,6 @@
   border: 1px solid var(--ej-line);
   border-radius: var(--rad-3);
   background: var(--ej-paper);
-  transition: transform var(--dur-med) var(--ease-out),
-              box-shadow var(--dur-med) var(--ease-out),
-              border-color var(--dur-med) var(--ease-out);
-}
-.about-grid > div:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--sh-2);
-  border-color: color-mix(in srgb, var(--ej-teal) 45%, var(--ej-line));
-}
-.about-grid > div:hover h2 { color: color-mix(in srgb, var(--ej-red) 32%, var(--ej-ink-4)); }
-.about-grid h2 { transition: color var(--dur-med) var(--ease-out); }
-@media (prefers-reduced-motion: reduce) {
-  .about-grid > div { transition: none; }
-  .about-grid > div:hover { transform: none; }
 }
 .about-grid h2,
 .about-note h2 {
