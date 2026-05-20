@@ -384,7 +384,7 @@ async function deleteCurrentTopic() {
 // ─────────────────────────────────────────────
 // QR
 // ─────────────────────────────────────────────
-// QR 모달 — node-qrcode(qrcode@1.5.3) 함수형 API 사용
+// QR 모달 — qrcodejs(1.0.0) 생성자 API 사용
 function renderQRModal(url, filename, title) {
   currentQRFilename = filename;
   $("#qr-modal-title").textContent = title || "QR 코드";
@@ -392,22 +392,23 @@ function renderQRModal(url, filename, title) {
   $("#qr-target").innerHTML = "";
   $("#qr-modal").classList.remove("hidden");
 
-  if (typeof QRCode === "undefined" || typeof QRCode.toCanvas !== "function") {
+  if (typeof QRCode === "undefined") {
     $("#qr-target").textContent = "QR 라이브러리를 불러오지 못했습니다.";
     return;
   }
-  QRCode.toCanvas(url, {
-    width: 256,
-    margin: 1,
-    color: { dark: "#D20015", light: "#FFFFFF" },
-    errorCorrectionLevel: "M"
-  }).then((canvas) => {
-    $("#qr-target").innerHTML = "";
-    $("#qr-target").appendChild(canvas);
-  }).catch((e) => {
+  try {
+    new QRCode($("#qr-target"), {
+      text: url,
+      width: 256,
+      height: 256,
+      colorDark: "#D20015",
+      colorLight: "#FFFFFF",
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch (e) {
     console.error("[QR] render failed", e);
     $("#qr-target").textContent = "QR 생성에 실패했습니다.";
-  });
+  }
 }
 
 function siteBaseUrl() {
@@ -426,10 +427,15 @@ function openSiteQRModal() {
 }
 
 function downloadQR() {
+  // qrcodejs 는 canvas 와 img 를 모두 생성 — canvas 우선, 실패 시 img.src 폴백
   const canvas = $("#qr-target canvas");
-  if (!canvas) return;
+  const img = $("#qr-target img");
+  let dataUrl = null;
+  if (canvas) { try { dataUrl = canvas.toDataURL("image/png"); } catch (_) {} }
+  if (!dataUrl && img && img.src) dataUrl = img.src;
+  if (!dataUrl) return;
   const a = document.createElement("a");
-  a.href = canvas.toDataURL("image/png");
+  a.href = dataUrl;
   a.download = `${currentQRFilename}.png`;
   a.click();
 }
