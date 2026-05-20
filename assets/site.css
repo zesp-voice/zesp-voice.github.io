@@ -886,7 +886,7 @@
 .topic-layout__compose > .h-section { margin: 0 0 var(--sp-4); }
 #compose-area .stack--loose { gap: var(--sp-4); }
 /* 안내 placeholder(여러 줄)가 잘리지 않도록 충분한 높이 확보 */
-#compose-area .textarea    { min-height: 320px; }
+#compose-area .textarea    { min-height: 300px; }
 .compose-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -919,6 +919,7 @@
   .topbar__inner { gap: var(--sp-3); }
   .brand { flex: 1 1 auto; }
   .brand__name { max-width: 150px; }
+  .brand__sub { letter-spacing: 1.5px; }  /* 모바일 보조제목 자간 — 데스크톱 톤에 맞춤 */
   .topbar__nav { gap: var(--sp-3); }
   .topbar__nav a { font-size: 12px; }
   #current-user { display: none !important; }
