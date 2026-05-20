@@ -266,41 +266,80 @@
 
 /* ── About page ───────────────────────────────────────────── */
 .about-page {
-  padding-top: var(--sp-7);
+  padding-top: var(--sp-5);
 }
 .about-lead {
   position: relative;
-  padding-bottom: var(--sp-7);
+  padding: var(--sp-6) var(--sp-5) var(--sp-7);
+  margin: 0 calc(var(--sp-5) * -1) 0;
   border-bottom: 1px solid var(--ej-line);
+  background:
+    radial-gradient(ellipse at top right, color-mix(in srgb, var(--ej-red) 7%, transparent), transparent 60%),
+    radial-gradient(ellipse at bottom left, color-mix(in srgb, var(--ej-navy) 5%, transparent), transparent 55%),
+    var(--ej-paper);
+  border-radius: var(--rad-4);
+  overflow: hidden;
 }
+.about-lead__glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--ej-red) 10%, transparent), transparent 40%);
+  opacity: 0.6;
+  pointer-events: none;
+  animation: aboutGlowDrift 14s ease-in-out infinite alternate;
+}
+@keyframes aboutGlowDrift {
+  from { transform: translate(0, 0) scale(1); opacity: 0.55; }
+  to   { transform: translate(-6%, 4%) scale(1.1); opacity: 0.8; }
+}
+.about-lead > *:not(.about-lead__glow) { position: relative; z-index: 1; }
 .about-lead h1 {
   max-width: 860px;
   margin: 0;
-  font: 800 clamp(34px, 5.2vw, 68px)/1.08 var(--ej-font-display);
-  letter-spacing: -0.03em;
+  font: 800 clamp(24px, 4.2vw, 44px)/1.18 var(--ej-font-display);
+  letter-spacing: -0.025em;
   color: var(--ej-ink);
+  animation: aboutFadeUp 0.7s var(--ease-out, cubic-bezier(.2,.7,.2,1)) 0.05s both;
 }
+.about-lead h1 em { font-style: normal; color: var(--ej-red); }
 .about-lead p {
   max-width: 780px;
-  margin: var(--sp-5) 0 0;
-  font-size: clamp(16px, 1.7vw, 21px);
-  line-height: 1.8;
+  margin: var(--sp-4) 0 0;
+  font-size: clamp(14px, 1.4vw, 17px);
+  line-height: 1.7;
   color: var(--ej-ink-3);
+  animation: aboutFadeUp 0.7s var(--ease-out, cubic-bezier(.2,.7,.2,1)) 0.18s both;
 }
 .about-kicker {
-  margin-bottom: var(--sp-4);
+  margin-bottom: var(--sp-3);
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ej-red);
   font-weight: 800;
+  animation: aboutFadeUp 0.6s var(--ease-out, cubic-bezier(.2,.7,.2,1)) both;
+}
+@keyframes aboutFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .about-visual {
-  margin-top: var(--sp-7);
+  margin-top: var(--sp-6);
   border: 1px solid var(--ej-line);
   border-radius: var(--rad-4);
   background: linear-gradient(135deg, white, var(--ej-surface));
   overflow: hidden;
+  animation: aboutFadeUp 0.7s var(--ease-out, cubic-bezier(.2,.7,.2,1)) 0.32s both;
+}
+.about-visual__step {
+  animation: aboutFadeUp 0.6s var(--ease-out, cubic-bezier(.2,.7,.2,1)) both;
+}
+.about-visual__step:nth-child(1) { animation-delay: 0.42s; }
+.about-visual__step:nth-child(2) { animation-delay: 0.54s; }
+.about-visual__step:nth-child(3) { animation-delay: 0.66s; }
+@media (prefers-reduced-motion: reduce) {
+  .about-kicker, .about-lead h1, .about-lead p,
+  .about-visual, .about-visual__step,
+  .about-lead__glow { animation: none !important; }
 }
 .about-visual__track {
   display: grid;
@@ -364,10 +403,20 @@
   line-height: 1.75;
 }
 .about-note {
-  padding: var(--sp-6);
+  position: relative;
+  padding: var(--sp-6) var(--sp-6) var(--sp-6) calc(var(--sp-6) + 8px);
   margin-top: var(--sp-6);
   border-radius: var(--rad-3);
-  background: var(--ej-red-wash);
+  background: var(--ej-paper);
+  border: 1px solid var(--ej-line);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+.about-note::before {
+  content: "";
+  position: absolute; left: 0; top: 18px; bottom: 18px;
+  width: 4px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--ej-navy), color-mix(in srgb, var(--ej-navy) 60%, var(--ej-red)));
 }
 .about-note ul {
   margin: 0;
@@ -375,6 +424,7 @@
   color: var(--ej-ink-2);
   line-height: 1.9;
 }
+.about-note ul li::marker { color: var(--ej-ink-4); }
 
 /* ── Admin login polish ───────────────────────────────────── */
 .admin-login-card {
