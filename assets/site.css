@@ -749,6 +749,82 @@
 }
 .private-check input { margin: 0; flex: 0 0 auto; accent-color: var(--ej-red); }
 
+/* ── 댓글 푸터 · 처리 상태 알약 ─────────────────────────────── */
+.comment__foot {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: var(--sp-3); margin-top: var(--sp-3);
+}
+.comment__check {
+  flex: 0 0 auto; margin: 0 var(--sp-2) 0 0;
+  accent-color: var(--ej-red); cursor: pointer;
+}
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font: 700 11px/1 var(--ej-font);
+  padding: 4px 10px; border-radius: var(--rad-pill);
+  white-space: nowrap;
+}
+.status-pill--wait { background: var(--ej-line-2);    color: var(--ej-ink-3); }
+.status-pill--recv { background: var(--ej-steel-tint); color: #3E5A73; }
+.status-pill--done { background: var(--ej-teal-tint);  color: var(--ej-teal); }
+.status-pill--editable {
+  border: none; cursor: pointer;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+.status-pill--editable::after { content: "▾"; font-size: 9px; opacity: .65; }
+.status-pill--editable:hover { filter: brightness(0.94); }
+
+/* 일괄 처리 바 — 관리자 전용 */
+.bulk-bar {
+  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+  background: var(--ej-surface);
+  border: 1px solid var(--ej-line);
+  border-radius: var(--rad-3);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.bulk-bar__all {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: 600 12px/1 var(--ej-font); color: var(--ej-ink-2);
+  cursor: pointer; white-space: nowrap;
+}
+.bulk-bar__all input { margin: 0; accent-color: var(--ej-red); cursor: pointer; }
+.bulk-bar__count {
+  font: 500 12px/1 var(--ej-font); color: var(--ej-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.bulk-bar__actions { display: flex; gap: var(--sp-2); margin-left: auto; }
+.bulk-bar__actions .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* 개별 상태 변경 팝오버 */
+.status-menu {
+  position: fixed; z-index: 200; min-width: 140px;
+  background: var(--ej-paper);
+  border: 1px solid var(--ej-line);
+  border-radius: var(--rad-2);
+  box-shadow: var(--sh-1);
+  padding: 4px; display: flex; flex-direction: column;
+}
+.status-menu__item {
+  display: flex; align-items: center; gap: 6px;
+  border: none; background: transparent; cursor: pointer;
+  font: 600 12px/1 var(--ej-font); color: var(--ej-ink-2);
+  padding: 8px 10px; border-radius: var(--rad-1); text-align: left;
+}
+.status-menu__item:hover { background: var(--ej-surface); }
+.status-menu__item.is-current { color: var(--ej-ink); }
+.status-menu__check {
+  width: 12px; display: inline-flex; justify-content: center;
+  color: var(--ej-teal);
+}
+
+@media (max-width: 480px) {
+  .bulk-bar { gap: var(--sp-2); }
+  .bulk-bar__actions { margin-left: 0; width: 100%; }
+  .bulk-bar__actions .btn { flex: 1; }
+}
+
 /* ── Eyebrow / Title pattern ───────────────────────────────── */
 .eyebrow {
   font-size: var(--fs-eyebrow); letter-spacing: 0.22em;

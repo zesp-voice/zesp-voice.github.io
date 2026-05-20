@@ -29,6 +29,11 @@ export const DEPT_COLOR_HEX = {
   moss: "#6E8B4A"
 };
 
+// 의견 처리 상태 — 접수 대기 → 접수 완료 → 전달 완료
+export const STATUS_ORDER = ['pending', 'received', 'forwarded'];
+export const STATUS_LABEL = { pending: '접수 대기', received: '접수 완료', forwarded: '전달 완료' };
+export const statusLabel = (s) => STATUS_LABEL[s] || '접수 대기';
+
 // 글로벌 토큰 매핑 (이름이 변경될 수 있어 안전망)
 export function deptColorOf(deptName, deptList) {
   const found = (deptList || []).find(d => d.name === deptName);

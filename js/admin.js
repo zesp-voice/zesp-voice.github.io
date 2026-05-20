@@ -7,7 +7,7 @@ import {
 } from "./firebase-init.js";
 import {
   DEFAULT_DEPARTMENTS, fmtDate, fmtDateTime,
-  esc, emojiHTML, toast, ddayBadgeHTML
+  esc, emojiHTML, toast, ddayBadgeHTML, statusLabel
 } from "./utils.js";
 import { countKeywords, topKeywords } from "./keywords.js";
 
@@ -454,7 +454,7 @@ async function fetchAllCommentsOf(topicId) {
   return publicSnap.docs.map(d => {
     const pub = d.data();
     const priv = privateMap.get(d.id) || {};
-    return { id: d.id, ...pub, employeeId: priv.employeeId || "" };
+    return { id: d.id, ...pub, status: pub.status || "pending", employeeId: priv.employeeId || "" };
   });
 }
 
@@ -464,13 +464,13 @@ function topicSheetRows(t, topicId, comments) {
     ["주제", t.title || topicId],
     ["마감일", fmtDate(t.dueAt), "상태", t.status || ""],
     [],
-    ["부문", "사번", "의견", "작성시각", "주요키워드"]
+    ["부문", "사번", "의견", "작성시각", "처리상태", "주요키워드"]
   ];
   for (const c of comments) {
     const tokens = topKeywords(countKeywords([c]), { topN: 5, minCount: 1 }).map(([w]) => w).join(", ");
     rows.push([
       c.department || "", c.employeeId || "", c.content || "",
-      c.createdAt?.toDate ? fmtDateTime(c.createdAt) : "", tokens
+      c.createdAt?.toDate ? fmtDateTime(c.createdAt) : "", statusLabel(c.status), tokens
     ]);
   }
   return rows;

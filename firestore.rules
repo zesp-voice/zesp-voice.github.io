@@ -19,7 +19,7 @@ service cloud.firestore {
     }
 
     function isValidComment() {
-      return request.resource.data.keys().hasAll(['content', 'department', 'createdAt', 'passwordHash', 'isPrivate'])
+      return request.resource.data.keys().hasAll(['content', 'department', 'createdAt', 'passwordHash', 'isPrivate', 'status'])
           && request.resource.data.content is string
           && request.resource.data.content.size() > 0
           && request.resource.data.content.size() <= 1500
@@ -28,7 +28,9 @@ service cloud.firestore {
           && request.resource.data.department.size() <= 40
           && request.resource.data.passwordHash is string
           && request.resource.data.passwordHash.size() == 64
-          && request.resource.data.isPrivate is bool;
+          && request.resource.data.isPrivate is bool
+          && request.resource.data.status is string
+          && request.resource.data.status in ['pending', 'received', 'forwarded'];
     }
 
     function isValidPrivate() {
@@ -65,19 +67,21 @@ service cloud.firestore {
         allow create: if isAdmin()
                        || (isValidComment() && isBeforeDue(topicId));
 
-        // 수정: 관리자 항상 가능. 작성자는 마감 전 + content 만 변경, 핵심 필드(passwordHash·department·createdAt) 보존.
+        // 수정: 관리자 항상 가능. 작성자는 마감 전 + content 만 변경, 핵심 필드(passwordHash·department·createdAt·status) 보존.
         // editedAt 은 serverTimestamp 로만 설정 가능. 실제 비밀번호 검증은 클라이언트(v1 한계).
+        // status 보존은 .get() 폴백 — status 필드 없는 구버전 댓글 수정도 허용.
         allow update: if isAdmin()
                        || (
                             request.resource.data.passwordHash == resource.data.passwordHash
                          && request.resource.data.department == resource.data.department
                          && request.resource.data.createdAt == resource.data.createdAt
                          && request.resource.data.isPrivate == resource.data.isPrivate
+                         && request.resource.data.get('status', 'pending') == resource.data.get('status', 'pending')
                          && request.resource.data.content is string
                          && request.resource.data.content.size() > 0
                          && request.resource.data.content.size() <= 1500
                          && request.resource.data.editedAt == request.time
-                         && request.resource.data.keys().hasOnly(['content', 'department', 'createdAt', 'passwordHash', 'editedAt', 'isPrivate'])
+                         && request.resource.data.keys().hasOnly(['content', 'department', 'createdAt', 'passwordHash', 'editedAt', 'isPrivate', 'status'])
                          && isBeforeDue(topicId)
                        );
 
