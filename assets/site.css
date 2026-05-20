@@ -144,12 +144,18 @@
   color: var(--ej-red-deep, #8E000E);
   white-space: nowrap;
 }
+.admin-chip__link {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  color: inherit; text-decoration: none;
+  padding: 0; line-height: 1;
+}
+.admin-chip__link:hover { color: var(--ej-red); }
 .admin-chip__dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--ej-red, #D20015);
   display: inline-block;
 }
-.admin-chip__label { line-height: 1; }
+.admin-chip__label { line-height: 1; font-variant-numeric: tabular-nums; }
 .admin-chip__signout {
   border: none; background: white; cursor: pointer;
   font: 600 11px/1 var(--ej-font);

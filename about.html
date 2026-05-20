@@ -31,8 +31,10 @@
       <a href="./about.html" aria-current="page">변화관리란</a>
       <a href="./admin.html" id="nav-admin">관리자</a>
       <span id="admin-chip" class="admin-chip hidden">
-        <span class="admin-chip__dot" aria-hidden="true"></span>
-        <span class="admin-chip__label">관리자 로그인됨</span>
+        <a class="admin-chip__link" href="./admin.html" title="관리자 페이지로 이동">
+          <span class="admin-chip__dot" aria-hidden="true"></span>
+          <span class="admin-chip__label" id="admin-chip-label">관리자</span>
+        </a>
         <button id="admin-signout" class="admin-chip__signout" title="관리자 로그아웃">로그아웃</button>
       </span>
     </nav>
@@ -102,12 +104,20 @@
 <script type="module">
   import { auth, onAuthStateChanged, signOut } from "./js/firebase-init.js";
   const chip = document.getElementById("admin-chip");
+  const chipLabel = document.getElementById("admin-chip-label");
   const navAdmin = document.getElementById("nav-admin");
   const signoutBtn = document.getElementById("admin-signout");
   if (chip && signoutBtn) {
     onAuthStateChanged(auth, (user) => {
-      if (user) { chip.classList.remove("hidden"); navAdmin?.classList.add("hidden"); }
-      else      { chip.classList.add("hidden");    navAdmin?.classList.remove("hidden"); }
+      if (user) {
+        chip.classList.remove("hidden");
+        navAdmin?.classList.add("hidden");
+        if (chipLabel) chipLabel.textContent = user.email ? user.email.split("@")[0] : "관리자";
+      } else {
+        chip.classList.add("hidden");
+        navAdmin?.classList.remove("hidden");
+        if (chipLabel) chipLabel.textContent = "관리자";
+      }
     });
     signoutBtn.addEventListener("click", async () => {
       if (!confirm("관리자 로그아웃 하시겠습니까?")) return;

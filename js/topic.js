@@ -711,7 +711,7 @@ async function init() {
   // Auth 상태 → 분석 패널 + 댓글 리스트 재렌더(관리자 삭제 버튼) + 사번 메타 listener
   unsubAuth = onAuthStateChanged(auth, (user) => {
     isAdmin = !!user;
-    syncAdminChip(isAdmin);
+    syncAdminChip(user);
     const panel = document.getElementById("analytics-panel");
     if (isAdmin) {
       panel.classList.remove("hidden");
@@ -811,16 +811,19 @@ function mountAdminChip() {
   });
 }
 
-function syncAdminChip(loggedIn) {
+function syncAdminChip(user) {
   const chip = document.getElementById("admin-chip");
   const navAdmin = document.getElementById("nav-admin");
+  const chipLabel = document.getElementById("admin-chip-label");
   if (!chip) return;
-  if (loggedIn) {
+  if (user) {
     chip.classList.remove("hidden");
     if (navAdmin) navAdmin.classList.add("hidden");
+    if (chipLabel) chipLabel.textContent = user.email ? user.email.split("@")[0] : "관리자";
   } else {
     chip.classList.add("hidden");
     if (navAdmin) navAdmin.classList.remove("hidden");
+    if (chipLabel) chipLabel.textContent = "관리자";
   }
 }
 

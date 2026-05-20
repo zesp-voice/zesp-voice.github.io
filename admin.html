@@ -28,9 +28,14 @@
     <nav class="topbar__nav">
       <a href="./index.html">홈</a>
       <a href="./about.html">변화관리란</a>
-      <a href="./admin.html" aria-current="page">관리자</a>
-      <span id="current-user" class="hidden" style="font-size: 12px; color: var(--ej-ink-3);"></span>
-      <a href="#" id="logout-link" class="hidden">로그아웃</a>
+      <a href="./admin.html" id="nav-admin" aria-current="page">관리자</a>
+      <span id="admin-chip" class="admin-chip hidden">
+        <a class="admin-chip__link" href="./admin.html" title="관리자 페이지">
+          <span class="admin-chip__dot" aria-hidden="true"></span>
+          <span class="admin-chip__label" id="admin-chip-label">관리자</span>
+        </a>
+        <button id="admin-signout" class="admin-chip__signout" title="관리자 로그아웃">로그아웃</button>
+      </span>
     </nav>
   </div>
 </header>

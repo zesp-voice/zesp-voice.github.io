@@ -172,19 +172,22 @@ async function handleLogout() {
 // 인증 상태 변경 → 화면 전환
 // ─────────────────────────────────────────────
 function setAuthed(user) {
+  const chip = $("#admin-chip");
+  const chipLabel = $("#admin-chip-label");
+  const navAdmin = $("#nav-admin");
   if (user) {
     $("#gate").classList.add("hidden");
     $("#admin-main").classList.remove("hidden");
-    $("#logout-link").classList.remove("hidden");
-    $("#current-user").classList.remove("hidden");
-    $("#current-user").textContent = user.email ? user.email.split("@")[0] : "";
+    if (chip) chip.classList.remove("hidden");
+    if (navAdmin) navAdmin.classList.add("hidden");
+    if (chipLabel) chipLabel.textContent = user.email ? user.email.split("@")[0] : "관리자";
     listenTopics();
   } else {
     $("#gate").classList.remove("hidden");
     $("#admin-main").classList.add("hidden");
-    $("#logout-link").classList.add("hidden");
-    $("#current-user").classList.add("hidden");
-    $("#current-user").textContent = "";
+    if (chip) chip.classList.add("hidden");
+    if (navAdmin) navAdmin.classList.remove("hidden");
+    if (chipLabel) chipLabel.textContent = "관리자";
     $("#auth-err").classList.add("hidden");
     if (topicsUnsub) { topicsUnsub(); topicsUnsub = null; }
   }
@@ -528,7 +531,16 @@ function bindUI() {
   $("#login-btn").addEventListener("click", handleLogin);
   $("#admin-id").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#pw-input").focus(); });
   $("#pw-input").addEventListener("keydown", (e) => { if (e.key === "Enter") handleLogin(); });
-  $("#logout-link").addEventListener("click", (e) => { e.preventDefault(); handleLogout(); });
+  // 통일된 admin-chip 로그아웃 (다른 페이지와 동일 패턴)
+  const signoutBtn = $("#admin-signout");
+  if (signoutBtn) {
+    signoutBtn.addEventListener("click", async () => {
+      if (!confirm("관리자 로그아웃 하시겠습니까?")) return;
+      signoutBtn.disabled = true;
+      try { await handleLogout(); }
+      finally { signoutBtn.disabled = false; }
+    });
+  }
 
   $("#auto-login").checked = localStorage.getItem(AUTO_LOGIN_KEY) === "1";
   $("#admin-id").value = localStorage.getItem(LAST_ID_KEY) || "";

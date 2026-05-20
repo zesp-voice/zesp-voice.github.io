@@ -108,13 +108,16 @@ function mountAdminChip() {
   const signoutBtn = $("#admin-signout");
   if (!chip || !signoutBtn) return;
 
+  const chipLabel = document.getElementById("admin-chip-label");
   unsubAuth = onAuthStateChanged(auth, (user) => {
     if (user) {
       chip.classList.remove("hidden");
       if (navAdmin) navAdmin.classList.add("hidden");  // 로그인 상태면 '관리자' 링크 숨김
+      if (chipLabel) chipLabel.textContent = user.email ? user.email.split("@")[0] : "관리자";
     } else {
       chip.classList.add("hidden");
       if (navAdmin) navAdmin.classList.remove("hidden");
+      if (chipLabel) chipLabel.textContent = "관리자";
     }
   });
 
