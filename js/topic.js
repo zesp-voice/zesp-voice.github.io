@@ -273,6 +273,8 @@ async function handleDeleteClick(commentId, mode) {
       await deleteDoc(doc(db, "topics", topicId, "comments", commentId));
       // 비공개 메타도 함께 삭제 (있으면). 없어도 무방.
       try { await deleteDoc(doc(db, "topics", topicId, "commentsPrivate", commentId)); } catch (_) {}
+      // commentCount 감소 — 홈 카드·KPI 동기화
+      try { await updateDoc(doc(db, "topics", topicId), { commentCount: increment(-1) }); } catch (e) { console.error("[commentCount] decrement failed", e); }
     } catch (e) {
       alert("삭제 실패: " + e.message);
     }
@@ -310,6 +312,8 @@ async function confirmDelete() {
     await deleteDoc(doc(db, "topics", topicId, "comments", pendingDeleteId));
     // 비공개 메타 정리 — Rules 가 매칭 공개 도큐먼트 부재 시 허용
     try { await deleteDoc(doc(db, "topics", topicId, "commentsPrivate", pendingDeleteId)); } catch (_) {}
+    // commentCount 감소 — Rules 가 anonymous 의 ±1 update 만 허용
+    try { await updateDoc(doc(db, "topics", topicId), { commentCount: increment(-1) }); } catch (e) { console.error("[commentCount] decrement failed", e); }
     closeDeleteModal();
   } catch (e) {
     showDeleteErr("삭제 실패: " + e.message);

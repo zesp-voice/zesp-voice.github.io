@@ -44,7 +44,16 @@ service cloud.firestore {
     // ── 주제 ─────────────────────────────────────────
     match /topics/{topicId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, delete: if isAdmin();
+
+      // update: 관리자는 모든 필드 가능.
+      // 익명은 commentCount 단일 필드만 ±1 단위 변경 가능 (댓글 추가/삭제 동기화용).
+      allow update: if isAdmin()
+                     || (
+                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount'])
+                       && (request.resource.data.commentCount == resource.data.commentCount + 1
+                           || request.resource.data.commentCount == resource.data.commentCount - 1)
+                     );
 
       // ── 공개 댓글 (본부·내용·시간·passwordHash) ──────────
       match /comments/{commentId} {
