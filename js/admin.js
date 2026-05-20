@@ -3,18 +3,17 @@ import {
   db, auth, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, onSnapshot, serverTimestamp, Timestamp,
   signInWithEmailAndPassword, signOut, onAuthStateChanged,
-  setPersistence, browserLocalPersistence, browserSessionPersistence
+  setPersistence, browserLocalPersistence
 } from "./firebase-init.js";
 import {
   DEFAULT_DEPARTMENTS, fmtDate, fmtDateTime,
-  esc, emojiHTML, toast, ddayBadgeHTML, statusLabel
+  esc, emojiHTML, toast, ddayBadgeHTML, statusLabel, topicClosed
 } from "./utils.js";
 import { countKeywords, topKeywords } from "./keywords.js";
 
 const $ = (s) => document.querySelector(s);
 
 const EMAIL_DOMAIN = "@eastarjet.com";
-const AUTO_LOGIN_KEY = "eastarAdminAutoLogin";
 const LAST_ID_KEY = "eastarAdminLastId";
 const EMOJI_OPTIONS = [
   ["✈️", "항공 비행기 노선 취항"],
@@ -117,7 +116,6 @@ async function handleLogin() {
   const adminId = $("#admin-id").value.trim();
   const email = normalizeEmail(adminId);
   const pw = $("#pw-input").value;
-  const keepSignedIn = $("#auto-login").checked;
   if (!adminId || !pw) {
     showAuthError("ID와 PW를 입력해주세요.");
     return;
@@ -125,9 +123,9 @@ async function handleLogin() {
   $("#login-btn").disabled = true;
   $("#login-btn").textContent = "로그인 중…";
   try {
-    await setPersistence(auth, keepSignedIn ? browserLocalPersistence : browserSessionPersistence);
+    // 로그인 상태는 항상 localStorage 에 유지 — 미리보기 등 모든 탭에서 관리자 인식
+    await setPersistence(auth, browserLocalPersistence);
     await signInWithEmailAndPassword(auth, email, pw);
-    localStorage.setItem(AUTO_LOGIN_KEY, keepSignedIn ? "1" : "0");
     localStorage.setItem(LAST_ID_KEY, adminId.toLowerCase());
     // onAuthStateChanged 가 나머지 처리
   } catch (e) {
@@ -228,9 +226,22 @@ function listenTopics() {
   topicsUnsub = onSnapshot(qAll, (snap) => {
     const list = [];
     snap.forEach(d => list.push({ id: d.id, ...d.data() }));
-    $("#admin-topics").innerHTML = list.length
-      ? list.map(t => topicRowHTML(t, t.id)).join("")
-      : `<div class="empty"><div class="empty__title">등록된 주제가 없습니다</div>+ 새 주제 등록 버튼으로 시작하세요.</div>`;
+
+    if (!list.length) {
+      $("#admin-topics").innerHTML = `<div class="empty"><div class="empty__title">등록된 주제가 없습니다</div>+ 새 주제 등록 버튼으로 시작하세요.</div>`;
+      return;
+    }
+
+    // 진행 중 / 종료 분류 — topicClosed: status=closed 이거나 마감일 경과
+    const active = list.filter(t => !topicClosed(t));
+    const closed = list.filter(t => topicClosed(t));
+    const groupHTML = (label, items) => items.length
+      ? `<div class="topic-group">
+           <div class="topic-group__head">${label}<span class="topic-group__count">${items.length}</span></div>
+           ${items.map(t => topicRowHTML(t, t.id)).join("")}
+         </div>`
+      : "";
+    $("#admin-topics").innerHTML = groupHTML("진행 중", active) + groupHTML("종료", closed);
 
     $("#admin-topics").querySelectorAll("[data-act]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -592,7 +603,6 @@ function bindUI() {
     });
   }
 
-  $("#auto-login").checked = localStorage.getItem(AUTO_LOGIN_KEY) === "1";
   $("#admin-id").value = localStorage.getItem(LAST_ID_KEY) || "";
   $("#emoji-picker-btn").addEventListener("click", toggleEmojiPicker);
   $("#emoji-search").addEventListener("input", (e) => renderEmojiOptions(e.target.value));

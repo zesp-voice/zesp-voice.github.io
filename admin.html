@@ -55,10 +55,6 @@
           <label for="pw-input">PW</label>
           <input id="pw-input" class="input" type="password" autocomplete="current-password" placeholder="">
         </div>
-        <label class="check-row" for="auto-login">
-          <input id="auto-login" type="checkbox">
-          <span>자동 로그인</span>
-        </label>
         <div id="auth-err" class="alert alert--danger hidden">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 10 17H2z"/><path d="M12 10v4M12 17v.01"/></svg>
           <div id="auth-err-msg"></div>
@@ -102,7 +98,7 @@
 
   <!-- 주제 리스트 -->
   <h2 class="h-section">등록된 주제</h2>
-  <div id="admin-topics" class="stack stack--tight">
+  <div id="admin-topics">
     <div class="empty">
       <div class="spinner" aria-hidden="true"></div>
       <div class="empty__title">불러오는 중…</div>

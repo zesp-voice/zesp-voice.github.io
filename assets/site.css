@@ -451,22 +451,6 @@
   padding: var(--sp-7);
   box-shadow: var(--sh-1);
 }
-.check-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
-  color: var(--ej-ink-3);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.check-row input {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--ej-red);
-}
-
 /* ── Cards ────────────────────────────────────────────────── */
 .card-grid {
   display: grid; gap: var(--sp-4);
@@ -840,6 +824,22 @@
   .bulk-bar { gap: var(--sp-2); }
   .bulk-bar__actions { margin-left: 0; width: 100%; }
   .bulk-bar__actions .btn { flex: 1; }
+}
+
+/* ── 관리자 — 주제 그룹 (진행 중 / 종료) ───────────────────── */
+.topic-group + .topic-group { margin-top: var(--sp-6); }
+.topic-group .chart-card + .chart-card { margin-top: var(--sp-2); }
+.topic-group__head {
+  display: flex; align-items: center; gap: var(--sp-2);
+  font: 700 13px/1 var(--ej-font); color: var(--ej-ink-3);
+  letter-spacing: 0.02em; margin-bottom: var(--sp-3);
+}
+.topic-group__count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: var(--rad-pill);
+  background: var(--ej-line-2); color: var(--ej-ink-3);
+  font: 700 11px/1 var(--ej-font);
 }
 
 /* ── Eyebrow / Title pattern ───────────────────────────────── */
