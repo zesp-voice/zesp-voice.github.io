@@ -1,7 +1,7 @@
 // topic.html — 주제 상세
 import {
   db, auth, collection, doc, getDoc, addDoc, setDoc, deleteDoc, query, orderBy, onSnapshot,
-  serverTimestamp, updateDoc, increment, onAuthStateChanged
+  serverTimestamp, updateDoc, increment, onAuthStateChanged, signOut
 } from "./firebase-init.js";
 import {
   DEFAULT_DEPARTMENTS, deptColorOf, colorHexOf, DEPT_COLOR_HEX,
@@ -711,6 +711,7 @@ async function init() {
   // Auth 상태 → 분석 패널 + 댓글 리스트 재렌더(관리자 삭제 버튼) + 사번 메타 listener
   unsubAuth = onAuthStateChanged(auth, (user) => {
     isAdmin = !!user;
+    syncAdminChip(isAdmin);
     const panel = document.getElementById("analytics-panel");
     if (isAdmin) {
       panel.classList.remove("hidden");
@@ -787,6 +788,43 @@ async function init() {
     allComments = original;
   });
 }
+
+// ── 관리자 상태 chip + 로그아웃 (topbar 공통) ──────────────
+function mountAdminChip() {
+  const chip = document.getElementById("admin-chip");
+  const navAdmin = document.getElementById("nav-admin");
+  const signoutBtn = document.getElementById("admin-signout");
+  if (!chip || !signoutBtn) return;
+
+  // 메인 onAuthStateChanged 리스너는 이미 isAdmin 상태를 추적하므로 별도 구독 없이 init 흐름에 위임.
+  // 여기서는 DOM 토글 + 로그아웃 핸들러만 담당하고, auth 변경 시 같은 리스너에서 호출되도록 한다.
+  signoutBtn.addEventListener("click", async () => {
+    if (!confirm("관리자 로그아웃 하시겠습니까?")) return;
+    signoutBtn.disabled = true;
+    try {
+      await signOut(auth);
+    } catch (e) {
+      alert("로그아웃 실패: " + (e.message || ""));
+    } finally {
+      signoutBtn.disabled = false;
+    }
+  });
+}
+
+function syncAdminChip(loggedIn) {
+  const chip = document.getElementById("admin-chip");
+  const navAdmin = document.getElementById("nav-admin");
+  if (!chip) return;
+  if (loggedIn) {
+    chip.classList.remove("hidden");
+    if (navAdmin) navAdmin.classList.add("hidden");
+  } else {
+    chip.classList.add("hidden");
+    if (navAdmin) navAdmin.classList.remove("hidden");
+  }
+}
+
+mountAdminChip();
 
 // pagehide 는 unload + bfcache 진입 양쪽 모두에 호출 → Firestore 리스너·차트 정리에 적합
 window.addEventListener("pagehide", () => {

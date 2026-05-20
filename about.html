@@ -29,7 +29,12 @@
     <nav class="topbar__nav">
       <a href="./index.html">홈</a>
       <a href="./about.html" aria-current="page">변화관리란</a>
-      <a href="./admin.html">관리자</a>
+      <a href="./admin.html" id="nav-admin">관리자</a>
+      <span id="admin-chip" class="admin-chip hidden">
+        <span class="admin-chip__dot" aria-hidden="true"></span>
+        <span class="admin-chip__label">관리자 로그인됨</span>
+        <button id="admin-signout" class="admin-chip__signout" title="관리자 로그아웃">로그아웃</button>
+      </span>
     </nav>
   </div>
 </header>
@@ -93,5 +98,25 @@
     <div>© EASTARJET 안전기획팀 · 변화관리 의견 광장</div>
   </div>
 </footer>
+
+<script type="module">
+  import { auth, onAuthStateChanged, signOut } from "./js/firebase-init.js";
+  const chip = document.getElementById("admin-chip");
+  const navAdmin = document.getElementById("nav-admin");
+  const signoutBtn = document.getElementById("admin-signout");
+  if (chip && signoutBtn) {
+    onAuthStateChanged(auth, (user) => {
+      if (user) { chip.classList.remove("hidden"); navAdmin?.classList.add("hidden"); }
+      else      { chip.classList.add("hidden");    navAdmin?.classList.remove("hidden"); }
+    });
+    signoutBtn.addEventListener("click", async () => {
+      if (!confirm("관리자 로그아웃 하시겠습니까?")) return;
+      signoutBtn.disabled = true;
+      try { await signOut(auth); }
+      catch (e) { alert("로그아웃 실패: " + (e.message || "")); }
+      finally { signoutBtn.disabled = false; }
+    });
+  }
+</script>
 </body>
 </html>

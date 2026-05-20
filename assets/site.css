@@ -133,6 +133,37 @@
 .topbar__nav a:hover { color: var(--ej-red); }
 .topbar__nav a[aria-current="page"] { color: var(--ej-red); font-weight: 800; }
 
+/* 관리자 로그인 상태 chip — topbar 우측 */
+.admin-chip {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  padding: 4px 6px 4px 10px;
+  background: var(--ej-red-wash, #FFF1F2);
+  border: 1px solid var(--ej-red, #D20015);
+  border-radius: var(--rad-pill, 999px);
+  font-size: 12px; font-weight: 600;
+  color: var(--ej-red-deep, #8E000E);
+  white-space: nowrap;
+}
+.admin-chip__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ej-red, #D20015);
+  display: inline-block;
+}
+.admin-chip__label { line-height: 1; }
+.admin-chip__signout {
+  border: none; background: white; cursor: pointer;
+  font: 600 11px/1 var(--ej-font);
+  color: var(--ej-ink-3);
+  padding: 4px 10px; border-radius: var(--rad-pill, 999px);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.admin-chip__signout:hover { background: var(--ej-red); color: white; }
+.admin-chip__signout:disabled { opacity: 0.5; cursor: wait; }
+@media (max-width: 760px) {
+  .admin-chip__label { display: none; }
+  .admin-chip { padding: 4px 6px; }
+}
+
 /* ── Hero (mobile-first compact) ──────────────────────────────
    모바일에서는 카드가 첫 뷰포트에 같이 보이도록 hero 전체를 컴팩트하게.
    md+ 에서 원래 large 사이즈로 복원. */

@@ -1,6 +1,7 @@
 // index.html — 홈
 import {
-  db, collection, doc, getDoc, query, orderBy, onSnapshot
+  db, auth, collection, doc, getDoc, query, orderBy, onSnapshot,
+  onAuthStateChanged, signOut
 } from "./firebase-init.js";
 import {
   fmtDate, esc, emojiHTML, topicClosed, ddayBadgeHTML
@@ -9,6 +10,7 @@ import {
 const $ = (s) => document.querySelector(s);
 
 let unsubTopics = null;
+let unsubAuth = null;
 
 async function loadDepartmentsConfig() {
   try {
@@ -99,9 +101,42 @@ async function init() {
   });
 }
 
+// ── 관리자 상태 chip + 로그아웃 ────────────────────────────
+function mountAdminChip() {
+  const chip = $("#admin-chip");
+  const navAdmin = $("#nav-admin");
+  const signoutBtn = $("#admin-signout");
+  if (!chip || !signoutBtn) return;
+
+  unsubAuth = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      chip.classList.remove("hidden");
+      if (navAdmin) navAdmin.classList.add("hidden");  // 로그인 상태면 '관리자' 링크 숨김
+    } else {
+      chip.classList.add("hidden");
+      if (navAdmin) navAdmin.classList.remove("hidden");
+    }
+  });
+
+  signoutBtn.addEventListener("click", async () => {
+    if (!confirm("관리자 로그아웃 하시겠습니까?")) return;
+    signoutBtn.disabled = true;
+    try {
+      await signOut(auth);
+    } catch (e) {
+      alert("로그아웃 실패: " + (e.message || ""));
+    } finally {
+      signoutBtn.disabled = false;
+    }
+  });
+}
+
+mountAdminChip();
+
 // pagehide 는 unload + bfcache 진입 양쪽 모두에 호출
 window.addEventListener("pagehide", () => {
   if (unsubTopics) unsubTopics();
+  if (unsubAuth) unsubAuth();
 });
 
 init();
