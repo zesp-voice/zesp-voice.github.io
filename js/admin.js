@@ -73,7 +73,7 @@ const EMOJI_OPTIONS = [
 
 let departments = DEFAULT_DEPARTMENTS;
 let editingId = null;
-let currentQRTopicId = null;
+let currentQRFilename = "qr";
 let topicsUnsub = null;
 let authUnsub = null;
 
@@ -384,30 +384,53 @@ async function deleteCurrentTopic() {
 // ─────────────────────────────────────────────
 // QR
 // ─────────────────────────────────────────────
-function openQRModal(id) {
-  currentQRTopicId = id;
-  const base = location.href.replace(/\/admin\.html.*$/, "/");
-  const url = `${base}topic.html?id=${encodeURIComponent(id)}`;
+// QR 모달 — node-qrcode(qrcode@1.5.3) 함수형 API 사용
+function renderQRModal(url, filename, title) {
+  currentQRFilename = filename;
+  $("#qr-modal-title").textContent = title || "QR 코드";
   $("#qr-url").textContent = url;
   $("#qr-target").innerHTML = "";
-
-  if (typeof QRCode !== "undefined") {
-    new QRCode($("#qr-target"), {
-      text: url, width: 256, height: 256,
-      colorDark: "#D20015", colorLight: "#FFFFFF",
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  }
   $("#qr-modal").classList.remove("hidden");
+
+  if (typeof QRCode === "undefined" || typeof QRCode.toCanvas !== "function") {
+    $("#qr-target").textContent = "QR 라이브러리를 불러오지 못했습니다.";
+    return;
+  }
+  QRCode.toCanvas(url, {
+    width: 256,
+    margin: 1,
+    color: { dark: "#D20015", light: "#FFFFFF" },
+    errorCorrectionLevel: "M"
+  }).then((canvas) => {
+    $("#qr-target").innerHTML = "";
+    $("#qr-target").appendChild(canvas);
+  }).catch((e) => {
+    console.error("[QR] render failed", e);
+    $("#qr-target").textContent = "QR 생성에 실패했습니다.";
+  });
+}
+
+function siteBaseUrl() {
+  return location.href.replace(/\/admin\.html.*$/, "/");
+}
+
+// 주제별 QR
+function openQRModal(id) {
+  renderQRModal(`${siteBaseUrl()}topic.html?id=${encodeURIComponent(id)}`,
+    `eastar-changemgmt-${id}`, "주제 QR 코드");
+}
+
+// 사이트 대표 QR (루트 URL)
+function openSiteQRModal() {
+  renderQRModal(siteBaseUrl(), "eastar-changemgmt-site", "사이트 대표 QR");
 }
 
 function downloadQR() {
-  const img = $("#qr-target img") || $("#qr-target canvas");
-  if (!img) return;
-  const dataUrl = img.toDataURL ? img.toDataURL("image/png") : img.src;
+  const canvas = $("#qr-target canvas");
+  if (!canvas) return;
   const a = document.createElement("a");
-  a.href = dataUrl;
-  a.download = `eastar-changemgmt-${currentQRTopicId}.png`;
+  a.href = canvas.toDataURL("image/png");
+  a.download = `${currentQRFilename}.png`;
   a.click();
 }
 
@@ -565,6 +588,7 @@ function bindUI() {
   $("#export-all-btn").addEventListener("click", exportAllCSV);
   $("#sync-sheets-btn").addEventListener("click", triggerSheetsSync);
   $("#qr-download").addEventListener("click", downloadQR);
+  $("#site-qr-btn").addEventListener("click", openSiteQRModal);
   document.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", closeModals));
 }
 
