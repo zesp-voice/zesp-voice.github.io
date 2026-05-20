@@ -401,7 +401,7 @@ function renderQRModal(url, filename, title) {
       text: url,
       width: 256,
       height: 256,
-      colorDark: "#D20015",
+      colorDark: "#000000",
       colorLight: "#FFFFFF",
       correctLevel: QRCode.CorrectLevel.M
     });
