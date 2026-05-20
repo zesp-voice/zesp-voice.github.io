@@ -138,6 +138,7 @@ async function submitComment() {
   const employeeId = $("#employee-id").value.trim();
   const content = $("#comment-text").value.trim();
   const rawPw = $("#comment-password").value;
+  const isPrivate = $("#comment-private").checked;
   const msgEl = $("#submit-msg");
 
   if (!dept)     { toast(msgEl, "danger", "<b>부문을 선택해주세요</b>"); return; }
@@ -157,12 +158,13 @@ async function submitComment() {
   try {
     const passwordHash = await sha256(rawPw);
 
-    // 공개 도큐먼트 (부문·내용·시간·passwordHash)
+    // 공개 도큐먼트 (부문·내용·시간·passwordHash·isPrivate)
     const publicRef = await addDoc(collection(db, "topics", topicId, "comments"), {
       content,
       department: dept,
       createdAt: serverTimestamp(),
-      passwordHash
+      passwordHash,
+      isPrivate
     });
 
     // 비공개 메타 (사번) — 사번을 남긴 경우에만 생성. 미입력 시 완전 익명.
@@ -190,6 +192,7 @@ async function submitComment() {
     $("#comment-text").value = "";
     $("#comment-password").value = "";
     $("#employee-id").value = "";
+    $("#comment-private").checked = false;
     $("#counter").textContent = "0";
     toast(msgEl, "success", "<b>의견이 등록되었습니다</b>참여해 주셔서 감사합니다.");
   } catch (e) {
@@ -217,14 +220,16 @@ function renderCommentList() {
   const topicClosedNow = topicData ? topicClosed(topicData) : false;
   listEl.innerHTML = list.map(c => {
     const canAuthorAct = !!c.passwordHash;
+    // 비공개 의견은 비관리자 화면에서 본문을 가림 (집계에는 포함)
+    const masked = !!c.isPrivate && !isAdmin;
     const actBtns = [];
     if (isAdmin) {
       // 관리자는 마감 여부와 무관하게 수정·삭제 가능
       actBtns.push(`<button class="comment__edit" data-id="${c.id}" data-mode="admin" title="관리자 수정">수정</button>`);
       actBtns.push(`<button class="comment__del" data-id="${c.id}" data-mode="admin" title="관리자 삭제">삭제</button>`);
     } else if (canAuthorAct) {
-      // 작성자 수정은 마감 전에만 노출 (Rules 와 일치). 삭제는 마감 후에도 가능.
-      if (!topicClosedNow) {
+      // 작성자 수정은 마감 전 + 본문이 보일 때만 노출. 삭제는 마감 후에도 가능.
+      if (!topicClosedNow && !masked) {
         actBtns.push(`<button class="comment__edit" data-id="${c.id}" data-mode="author" title="비밀번호로 수정">수정</button>`);
       }
       actBtns.push(`<button class="comment__del" data-id="${c.id}" data-mode="author" title="비밀번호로 삭제">삭제</button>`);
@@ -237,18 +242,23 @@ function renderCommentList() {
     const editedBadge = c.editedAt
       ? `<span class="comment__edited text-mute text-small" title="${esc(fmtDateTime(c.editedAt))}">· 수정됨</span>`
       : "";
+    const privBadge = c.isPrivate ? `<span class="comment__priv">비공개</span>` : "";
+    const bodyHTML = masked
+      ? `<div class="comment__body comment__body--private">작성자가 비공개로 남긴 의견입니다.</div>`
+      : `<div class="comment__body">${esc(c.content)}</div>`;
     return `
     <div class="comment">
       <div class="comment__head">
         <div class="row" style="gap: var(--sp-2);">
           ${deptChipHTML(c.department, departments)}
+          ${privBadge}
           ${empChip}
           <span class="comment__time" title="${esc(fmtDateTime(c.createdAt))}">${esc(fmtRelative(c.createdAt))}</span>
           ${editedBadge}
         </div>
         <div class="row" style="gap: var(--sp-2);">${actBtns.join("")}</div>
       </div>
-      <div class="comment__body">${esc(c.content)}</div>
+      ${bodyHTML}
     </div>
   `;
   }).join("");

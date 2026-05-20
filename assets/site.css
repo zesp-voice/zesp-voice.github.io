@@ -714,6 +714,28 @@
 }
 .comment__edited { margin-left: 2px; }
 
+/* 비공개 의견 — 본문 마스킹 + 관리자용 배지 */
+.comment__body--private {
+  color: var(--ej-ink-4);
+  font-style: italic;
+}
+.comment__priv {
+  display: inline-flex; align-items: center; gap: 3px;
+  font: 700 10px/1 var(--ej-font);
+  padding: 4px 7px; border-radius: var(--rad-pill);
+  background: var(--ej-line); color: var(--ej-ink-3);
+  letter-spacing: 0.04em;
+}
+
+/* 작성 폼 — 비공개 제출 체크박스 */
+.private-check {
+  display: flex; gap: var(--sp-2); align-items: flex-start;
+  font-size: 12px; line-height: 1.6; color: var(--ej-ink-3);
+  cursor: pointer;
+}
+.private-check input { margin-top: 2px; flex: 0 0 auto; accent-color: var(--ej-red); }
+.private-check b { color: var(--ej-ink-2); font-weight: 800; }
+
 /* ── Eyebrow / Title pattern ───────────────────────────────── */
 .eyebrow {
   font-size: var(--fs-eyebrow); letter-spacing: 0.22em;

@@ -19,7 +19,7 @@ service cloud.firestore {
     }
 
     function isValidComment() {
-      return request.resource.data.keys().hasAll(['content', 'department', 'createdAt', 'passwordHash'])
+      return request.resource.data.keys().hasAll(['content', 'department', 'createdAt', 'passwordHash', 'isPrivate'])
           && request.resource.data.content is string
           && request.resource.data.content.size() > 0
           && request.resource.data.content.size() <= 1500
@@ -27,7 +27,8 @@ service cloud.firestore {
           && request.resource.data.department.size() > 0
           && request.resource.data.department.size() <= 40
           && request.resource.data.passwordHash is string
-          && request.resource.data.passwordHash.size() == 64;
+          && request.resource.data.passwordHash.size() == 64
+          && request.resource.data.isPrivate is bool;
     }
 
     function isValidPrivate() {
@@ -56,7 +57,8 @@ service cloud.firestore {
                            || request.resource.data.commentCount == resource.data.commentCount - 1)
                      );
 
-      // ── 공개 댓글 (부문·내용·시간·passwordHash) ──────────
+      // ── 공개 댓글 (부문·내용·시간·passwordHash·isPrivate) ──────────
+      // isPrivate=true 면 클라이언트가 비관리자 화면에서 본문을 가림 (집계에는 포함).
       match /comments/{commentId} {
         allow read: if true;
 
@@ -70,11 +72,12 @@ service cloud.firestore {
                             request.resource.data.passwordHash == resource.data.passwordHash
                          && request.resource.data.department == resource.data.department
                          && request.resource.data.createdAt == resource.data.createdAt
+                         && request.resource.data.isPrivate == resource.data.isPrivate
                          && request.resource.data.content is string
                          && request.resource.data.content.size() > 0
                          && request.resource.data.content.size() <= 1500
                          && request.resource.data.editedAt == request.time
-                         && request.resource.data.keys().hasOnly(['content', 'department', 'createdAt', 'passwordHash', 'editedAt'])
+                         && request.resource.data.keys().hasOnly(['content', 'department', 'createdAt', 'passwordHash', 'editedAt', 'isPrivate'])
                          && isBeforeDue(topicId)
                        );
 
