@@ -401,7 +401,7 @@
   box-shadow: var(--sh-2);
   border-color: color-mix(in srgb, var(--ej-teal) 45%, var(--ej-line));
 }
-.about-grid > div:hover h2 { color: var(--ej-teal); }
+.about-grid > div:hover h2 { color: color-mix(in srgb, var(--ej-red) 65%, white); }
 .about-grid h2 { transition: color var(--dur-med) var(--ease-out); }
 @media (prefers-reduced-motion: reduce) {
   .about-grid > div { transition: none; }
@@ -414,6 +414,7 @@
   letter-spacing: -0.01em;
   color: var(--ej-ink);
 }
+.about-note h2 { color: var(--ej-red); }
 .about-grid p {
   margin: 0;
   color: var(--ej-ink-3);
@@ -427,24 +428,7 @@
   border-radius: var(--rad-3);
   border: 1px solid var(--ej-line);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-  /* 베이스는 paper, hover 시 teal-tint 가 왼쪽→오른쪽으로 차오름 (background-size wipe) */
-  background-color: var(--ej-paper);
-  background-image: linear-gradient(to right, var(--ej-teal-tint), var(--ej-teal-tint));
-  background-repeat: no-repeat;
-  background-position: left center;
-  background-size: 0% 100%;
-  transition: background-size 0.6s var(--ease-out),
-              box-shadow var(--dur-med) var(--ease-out),
-              border-color var(--dur-med) var(--ease-out);
-}
-.about-note:hover {
-  background-size: 100% 100%;
-  box-shadow: var(--sh-2);
-  border-color: color-mix(in srgb, var(--ej-teal) 35%, var(--ej-line));
-}
-@media (prefers-reduced-motion: reduce) {
-  .about-note { transition: box-shadow var(--dur-med) var(--ease-out); }
-  .about-note:hover { background-size: 100% 100%; }
+  background: var(--ej-paper);
 }
 .about-note::before {
   content: "";
