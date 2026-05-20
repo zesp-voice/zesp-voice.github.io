@@ -183,3 +183,24 @@ export function deptChipHTML(deptName, deptList) {
   const color = deptColorOf(deptName, deptList);
   return `<span class="dept" data-color="${color}">${esc(deptName || "기타")}</span>`;
 }
+
+// 주제 카드 HTML — 홈·주제 페이지 공용
+export function renderTopicCard(t, id) {
+  const closed = topicClosed(t);
+  const dday = ddayBadgeHTML(t);
+  return `
+    <a class="topic-card ${closed ? "topic-card--closed" : ""}" href="topic.html?id=${encodeURIComponent(id)}">
+      <div class="topic-card__head">
+        <div class="topic-card__emoji">${emojiHTML(t.coverEmoji || "✈️")}</div>
+        ${dday}
+      </div>
+      <h3 class="topic-card__title">${esc(t.title || "(제목 없음)")}</h3>
+      <p class="topic-card__desc">${esc(t.description || "")}</p>
+      <div class="topic-card__meta">
+        <span>의견 <strong class="text-num">${t.commentCount ?? 0}</strong></span>
+        <span>·</span>
+        <span>마감 ${fmtDate(t.dueAt)}</span>
+      </div>
+    </a>
+  `;
+}

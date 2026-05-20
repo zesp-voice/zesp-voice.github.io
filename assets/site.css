@@ -464,6 +464,10 @@
 @media (min-width: 768px)  { .card-grid { gap: var(--sp-5); grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1040px) { .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
+/* 홈 — 전체 주제 보기 CTA (가려진 주제가 있을 때만 노출) */
+.topics-more { display: flex; justify-content: center; margin-top: var(--sp-6); }
+.topics-more:empty { display: none; }
+
 .topic-card {
   background: var(--ej-paper);
   border: 1px solid var(--ej-line);

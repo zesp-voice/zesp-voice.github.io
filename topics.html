@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://www.gstatic.com https://script.google.com https://script.googleusercontent.com;">
-<title>이스타항공 변화관리 의견 광장</title>
-<meta name="description" content="이스타항공 전 임직원이 익명으로 변화관리 주제에 의견을 남기는 사내 광장">
+<title>전체 주제 · 변화관리 의견 광장</title>
+<meta name="description" content="진행 중인 주제와 지난 주제 전체 목록">
 <meta name="theme-color" content="#D20015">
 <link rel="icon" type="image/png" sizes="128x128" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
@@ -27,8 +27,8 @@
       </span>
     </a>
     <nav class="topbar__nav">
-      <a href="./index.html" aria-current="page">홈</a>
-      <a href="./topics.html">주제</a>
+      <a href="./index.html">홈</a>
+      <a href="./topics.html" aria-current="page">주제</a>
       <a href="./about.html">변화관리란</a>
       <a href="./admin.html" id="nav-admin">관리자</a>
       <span id="admin-chip" class="admin-chip hidden">
@@ -42,27 +42,15 @@
   </div>
 </header>
 
-<section class="hero">
+<section class="section--tight topic-hero" style="background: linear-gradient(180deg, var(--ej-surface), var(--ej-paper));">
   <div class="wrap">
-    <h1 class="hero__title">모두가 함께하는 <em>변화관리</em>.<br>당신의 의견을 들려주세요.</h1>
-    <p class="hero__desc">
-      <span>신규 취항·정책 개편·업무 프로세스 등 변화의 시작점에서</span>
-      <span>걱정·고민·궁금증을 익명으로 자유롭게 남겨주세요.</span>
-    </p>
-    <div class="hero__stats">
-      <div>
-        <div class="hero__stat-num" id="stat-active">—</div>
-        <div class="hero__stat-lbl">진행 중 주제</div>
-      </div>
-      <div>
-        <div class="hero__stat-num" id="stat-comments">—</div>
-        <div class="hero__stat-lbl">총 누적 의견</div>
-      </div>
-    </div>
+    <div class="eyebrow">VOICE OF EASTARJET</div>
+    <h1 style="margin: var(--sp-3) 0 var(--sp-3); font-size: clamp(26px, 4vw, 40px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;">전체 주제</h1>
+    <p style="margin: 0; color: var(--ej-ink-3); line-height: 1.7;">진행 중인 주제와 지난 주제를 한곳에 모았습니다.</p>
   </div>
 </section>
 
-<main class="wrap section home-main">
+<main class="wrap section--tight">
   <div class="row row--between" style="margin-bottom: var(--sp-5);">
     <h2 class="h-section" style="margin: 0;">진행 중인 주제</h2>
     <span class="text-mute text-small" id="active-count"></span>
@@ -74,15 +62,13 @@
     </div>
   </div>
 
-  <hr class="divider" id="closed">
+  <hr class="divider">
 
   <div class="row row--between" style="margin-bottom: var(--sp-5);">
     <h2 class="h-section" style="margin: 0;">지난 주제</h2>
     <span class="text-mute text-small" id="closed-count"></span>
   </div>
   <div id="closed-topics" class="card-grid"></div>
-
-  <div id="topics-more" class="topics-more"></div>
 </main>
 
 <footer class="footer">
@@ -91,7 +77,6 @@
   </div>
 </footer>
 
-<!-- Firebase v10 modular SDK -->
-<script type="module" src="js/home.js"></script>
+<script type="module" src="js/topics.js"></script>
 </body>
 </html>

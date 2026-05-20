@@ -1,24 +1,14 @@
-// index.html — 홈
+// topics.html — 전체 주제 목록
 import {
-  db, auth, collection, doc, getDoc, query, orderBy, onSnapshot,
+  db, auth, collection, query, orderBy, onSnapshot,
   onAuthStateChanged, signOut
 } from "./firebase-init.js";
-import {
-  topicClosed, renderTopicCard
-} from "./utils.js";
+import { topicClosed, renderTopicCard } from "./utils.js";
 
 const $ = (s) => document.querySelector(s);
 
 let unsubTopics = null;
 let unsubAuth = null;
-
-async function loadDepartmentsConfig() {
-  try {
-    const snap = await getDoc(doc(db, "config", "departments"));
-    if (snap.exists()) return snap.data().list || [];
-  } catch (e) { console.warn("departments config load fail", e); }
-  return [];
-}
 
 function renderEmpty(label) {
   return `
@@ -29,24 +19,17 @@ function renderEmpty(label) {
   `;
 }
 
-async function init() {
-  await loadDepartmentsConfig(); // warm cache
-
-  const topicsCol = collection(db, "topics");
-  // 정렬: 진행 중은 마감 빠른 순, 종료는 최근 마감 순으로
-  const qAll = query(topicsCol, orderBy("dueAt", "desc"));
+function init() {
+  // dueAt 기준 내림차순 — 진행 중은 아래에서 다시 마감 빠른 순으로 정렬
+  const qAll = query(collection(db, "topics"), orderBy("dueAt", "desc"));
 
   unsubTopics = onSnapshot(qAll, (snap) => {
     const active = [], closed = [];
-    let totalComments = 0;
-
     snap.forEach((d) => {
       const t = d.data();
-      const id = d.id;
-      const item = { id, ...t };
+      const item = { id: d.id, ...t };
       if (topicClosed(t)) closed.push(item);
       else active.push(item);
-      totalComments += (t.commentCount || 0);
     });
 
     // 진행 중: 마감 빠른 순
@@ -56,28 +39,16 @@ async function init() {
       return ad - bd;
     });
 
-    // 홈에는 각 최근 3개만 — 전체는 주제 페이지에서
     $("#active-topics").innerHTML = active.length
-      ? active.slice(0, 3).map(t => renderTopicCard(t, t.id)).join("")
+      ? active.map(t => renderTopicCard(t, t.id)).join("")
       : renderEmpty("진행 중인 주제가 없습니다");
 
     $("#closed-topics").innerHTML = closed.length
-      ? closed.slice(0, 3).map(t => renderTopicCard(t, t.id)).join("")
+      ? closed.map(t => renderTopicCard(t, t.id)).join("")
       : renderEmpty("지난 주제가 없습니다");
 
     $("#active-count").textContent = active.length ? `${active.length}개 진행 중` : "";
     $("#closed-count").textContent = closed.length ? `${closed.length}개 보관됨` : "";
-
-    // 3개 초과로 가려진 주제가 있으면 전체보기 CTA 노출
-    const moreEl = $("#topics-more");
-    if (moreEl) {
-      moreEl.innerHTML = (active.length > 3 || closed.length > 3)
-        ? `<a class="btn btn--ghost" href="./topics.html">전체 주제 보기 →</a>`
-        : "";
-    }
-
-    $("#stat-active").textContent = active.length;
-    $("#stat-comments").textContent = totalComments.toLocaleString();
   }, (err) => {
     console.error("topics listen error", err);
     $("#active-topics").innerHTML = `
@@ -89,7 +60,7 @@ async function init() {
   });
 }
 
-// ── 관리자 상태 chip + 로그아웃 ────────────────────────────
+// ── 관리자 상태 chip + 로그아웃 (topbar 공통) ──────────────
 function mountAdminChip() {
   const chip = $("#admin-chip");
   const navAdmin = $("#nav-admin");
@@ -100,7 +71,7 @@ function mountAdminChip() {
   unsubAuth = onAuthStateChanged(auth, (user) => {
     if (user) {
       chip.classList.remove("hidden");
-      if (navAdmin) navAdmin.classList.add("hidden");  // 로그인 상태면 '관리자' 링크 숨김
+      if (navAdmin) navAdmin.classList.add("hidden");
       if (chipLabel) chipLabel.textContent = user.email ? user.email.split("@")[0] : "관리자";
     } else {
       chip.classList.add("hidden");
