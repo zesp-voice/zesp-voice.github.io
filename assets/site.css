@@ -670,6 +670,11 @@
 }
 .field__counter--warn { color: var(--ej-red); font-weight: 800; }
 
+/* 모바일 — 입력 폰트 16px (iOS Safari 포커스 시 자동 확대 방지) */
+@media (max-width: 767px) {
+  .input, .textarea, .select { font-size: 16px; }
+}
+
 /* ── Alerts ──────────────────────────────────────────────── */
 .alert {
   border-radius: var(--rad-3); padding: 16px 20px;
@@ -916,7 +921,6 @@
   #compose-area .stack--loose               { gap: var(--sp-3); }
   #compose-area .alert--notice              { padding: var(--sp-3) var(--sp-4); font-size: 11px; }
   #compose-area .alert--notice .notice-list { margin-top: 4px; gap: 3px; font-size: 11px; }
-  #compose-area .textarea                   { font-size: 12px; }
   #compose-area .field                      { gap: 4px; }
 }
 
