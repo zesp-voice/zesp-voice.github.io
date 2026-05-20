@@ -281,9 +281,12 @@
   overflow: hidden;
 }
 .about-lead__glow {
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--ej-red) 10%, transparent), transparent 40%);
-  opacity: 0.6;
+  position: absolute; inset: -15%;
+  background: radial-gradient(ellipse 55% 60% at 85% 12%,
+    color-mix(in srgb, var(--ej-red) 9%, transparent) 0%,
+    transparent 78%);
+  opacity: 0.7;
+  filter: blur(40px);
   pointer-events: none;
   animation: aboutGlowDrift 14s ease-in-out infinite alternate;
 }
