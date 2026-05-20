@@ -35,10 +35,13 @@ let unsubPrivate = null;
 let listSizeObserver = null;
 const commentsPrivateMap = new Map();  // commentId → { employeeId, ipHash } (admin only)
 
-// 처리 상태 — 일괄 선택 상태(관리자) · 개별 변경 팝오버
+// 처리 상태 — 일괄 선택 상태(관리자) · 개별 변경 팝오버 · 임시저장
 const selectedIds = new Set();   // 일괄 변경용 체크된 commentId
+const pendingStatus = new Map(); // commentId → 저장 전 임시 변경 status (관리자)
 let visibleIds = [];             // 현재 필터·정렬 후 화면에 보이는 commentId 순서
 let statusMenuEl = null;         // 개별 상태 변경 팝오버 (body 직속, position:fixed)
+let commentsExpanded = false;          // "전체보기"로 펼친 상태인지
+const COMMENTS_COLLAPSED_LIMIT = 10;   // 접힘 시 표시할 최근 의견 수
 
 // 오른쪽 의견 리스트 높이를 왼쪽 compose 높이와 동기화 (데스크톱 lg+ 만 적용)
 function syncListHeight() {
@@ -219,11 +222,12 @@ async function submitComment() {
 }
 
 function renderCommentList() {
+  prunePending();
   const filter = $("#filter-dept").value;
   const list = filter ? allComments.filter(c => c.department === filter) : allComments;
   const listEl = $("#comments-list");
-  visibleIds = list.map(c => c.id);
   if (!list.length) {
+    visibleIds = [];
     listEl.innerHTML = `
       <div class="empty">
         <div class="empty__title">아직 의견이 없습니다</div>
@@ -233,8 +237,13 @@ function renderCommentList() {
     syncBulkBar();
     return;
   }
+  // 최근 N개만 표시 — 초과분은 "전체보기"로 펼침
+  const shown = (!commentsExpanded && list.length > COMMENTS_COLLAPSED_LIMIT)
+    ? list.slice(0, COMMENTS_COLLAPSED_LIMIT)
+    : list;
+  visibleIds = shown.map(c => c.id);
   const topicClosedNow = topicData ? topicClosed(topicData) : false;
-  listEl.innerHTML = list.map(c => {
+  const cardsHTML = shown.map(c => {
     const canAuthorAct = !!c.passwordHash;
     // 비공개 의견은 비관리자 화면에서 본문을 가림 (집계에는 포함)
     const masked = !!c.isPrivate && !isAdmin;
@@ -262,12 +271,14 @@ function renderCommentList() {
     const bodyHTML = masked
       ? `<div class="comment__body comment__body--private">작성자가 비공개로 남긴 의견입니다.</div>`
       : `<div class="comment__body">${esc(c.content)}</div>`;
-    // 처리 상태 알약 — 모든 사용자에게 노출. 관리자는 클릭하여 변경.
-    const st = c.status || "pending";
+    // 처리 상태 알약 — 모든 사용자에게 노출. 관리자는 클릭하여 변경(임시저장 후 [저장]).
+    const savedSt = c.status || "pending";
+    const isDirty = isAdmin && pendingStatus.has(c.id);
+    const st = isDirty ? pendingStatus.get(c.id) : savedSt;
     const stMod = STATUS_MOD[st] || "wait";
     const statusPill = isAdmin
-      ? `<button class="status-pill status-pill--${stMod} status-pill--editable" data-id="${c.id}" data-status="${esc(st)}">${esc(statusLabel(st))}</button>`
-      : `<span class="status-pill status-pill--${stMod}">${esc(statusLabel(st))}</span>`;
+      ? `<button class="status-pill status-pill--${stMod} status-pill--editable${isDirty ? " status-pill--dirty" : ""}" data-id="${c.id}" data-status="${esc(st)}" title="${isDirty ? "미저장 변경 (저장 버튼으로 반영)" : "처리 상태"}">${esc(statusLabel(st))}</button>`
+      : `<span class="status-pill status-pill--${stMod}">${esc(statusLabel(savedSt))}</span>`;
     // 관리자 일괄 선택 체크박스 (마감 무관)
     const checkbox = isAdmin
       ? `<input type="checkbox" class="comment__check" data-id="${c.id}" aria-label="의견 선택"${selectedIds.has(c.id) ? " checked" : ""}>`
@@ -292,6 +303,12 @@ function renderCommentList() {
     </div>
   `;
   }).join("");
+
+  // 최근 N개 초과 시 전체보기 토글 버튼
+  const toggleHTML = list.length > COMMENTS_COLLAPSED_LIMIT
+    ? `<div class="comments-toggle"><button type="button" class="btn btn--ghost btn--sm" id="comments-toggle-btn">${commentsExpanded ? "최근 의견만 보기" : `의견 ${list.length - COMMENTS_COLLAPSED_LIMIT}개 더 보기`}</button></div>`
+    : "";
+  listEl.innerHTML = cardsHTML + toggleHTML;
 
   // 삭제 버튼 바인딩
   listEl.querySelectorAll(".comment__del").forEach(btn => {
@@ -318,30 +335,85 @@ function renderCommentList() {
     });
   });
 
+  // 전체보기 / 최근 의견만 보기 토글
+  const toggleBtn = $("#comments-toggle-btn");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      closeStatusMenu();
+      commentsExpanded = !commentsExpanded;
+      rerenderComments();
+    });
+  }
+
   syncBulkBar();
 }
 
 // ─────────────────────────────────────────────
-// 처리 상태 — 개별 변경 (팝오버) · 일괄 변경 (체크박스 바)
+// 처리 상태 — 임시저장(개별·일괄) → [저장] 일괄 commit
 // ─────────────────────────────────────────────
-async function updateCommentStatus(id, status) {
-  try {
-    await updateDoc(doc(db, "topics", topicId, "comments", id), { status });
-  } catch (e) {
-    console.error("[status] update failed", e);
-    alert("처리 상태 변경에 실패했습니다: " + (e.message || ""));
+// 댓글 리스트 재렌더 (allComments asc → 표시용 desc 변환)
+function rerenderComments() {
+  const sortedDesc = [...allComments].sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+  const original = allComments;
+  allComments = sortedDesc;
+  renderCommentList();
+  allComments = original;
+}
+
+// 사라졌거나 이미 저장값과 같아진 임시 변경 정리
+function prunePending() {
+  if (!pendingStatus.size) return;
+  const byId = new Map(allComments.map(c => [c.id, c]));
+  for (const [id, st] of [...pendingStatus]) {
+    const c = byId.get(id);
+    if (!c || (c.status || "pending") === st) pendingStatus.delete(id);
   }
 }
 
-async function bulkUpdateStatus(ids, status) {
-  const results = await Promise.allSettled(
-    ids.map(id => updateDoc(doc(db, "topics", topicId, "comments", id), { status }))
-  );
-  const failed = results.filter(r => r.status === "rejected").length;
-  if (failed) {
-    console.error("[status] bulk update partial failure", results);
-    alert(`${ids.length}건 중 ${failed}건 변경에 실패했습니다. 잠시 후 다시 시도해주세요.`);
+// 상태 변경을 임시저장 — 저장값과 같아지면 변경 취소
+function stageStatus(id, status) {
+  const c = allComments.find(x => x.id === id);
+  const saved = (c && c.status) || "pending";
+  if (status === saved) pendingStatus.delete(id);
+  else pendingStatus.set(id, status);
+}
+
+// 임시 변경 일괄 commit
+async function savePendingStatus() {
+  if (!pendingStatus.size) return;
+  const entries = [...pendingStatus];
+  const saveBtn = $("#save-btn");
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "저장 중…"; }
+  try {
+    const results = await Promise.allSettled(
+      entries.map(([id, status]) => updateDoc(doc(db, "topics", topicId, "comments", id), { status }))
+    );
+    let failed = 0;
+    results.forEach((r, i) => {
+      if (r.status === "fulfilled") pendingStatus.delete(entries[i][0]);
+      else failed++;
+    });
+    if (failed) {
+      console.error("[status] save partial failure", results);
+      alert(`${entries.length}건 중 ${failed}건 저장에 실패했습니다. 실패한 변경은 그대로 남아 있습니다.`);
+    }
+    rerenderComments();
+    syncBulkBar();
+  } catch (e) {
+    console.error("[status] save failed", e);
+    alert("저장 중 오류가 발생했습니다: " + (e.message || ""));
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "저장"; }
   }
+}
+
+// 임시 변경 폐기
+function discardPendingStatus() {
+  if (!pendingStatus.size) return;
+  if (!confirm(`저장하지 않은 변경 ${pendingStatus.size}건을 되돌립니다.`)) return;
+  pendingStatus.clear();
+  rerenderComments();
+  syncBulkBar();
 }
 
 // 개별 상태 변경 팝오버 — body 직속 position:fixed (리스트 overflow 잘림 회피)
@@ -363,7 +435,11 @@ function openStatusMenu(commentId, currentStatus, x, y) {
       e.stopPropagation();
       const next = btn.dataset.status;
       closeStatusMenu();
-      if (next !== currentStatus) updateCommentStatus(commentId, next);  // 같은 상태 재선택은 no-op
+      if (next !== currentStatus) {  // 같은 상태 재선택은 no-op
+        stageStatus(commentId, next);   // 즉시 저장하지 않고 임시저장
+        rerenderComments();
+        syncBulkBar();
+      }
     });
   });
 }
@@ -379,6 +455,11 @@ document.addEventListener("click", (e) => {
   }
 });
 window.addEventListener("scroll", closeStatusMenu, true);
+
+// 미저장 처리 상태 변경이 있으면 페이지 이탈 경고
+window.addEventListener("beforeunload", (e) => {
+  if (pendingStatus.size > 0) { e.preventDefault(); e.returnValue = ""; }
+});
 
 // 일괄 처리 바 — 관리자만 노출. 선택 개수·버튼 활성·전체선택 상태 동기화.
 function syncBulkBar() {
@@ -405,21 +486,34 @@ function syncBulkBar() {
       selectAll.checked = false; selectAll.indeterminate = true;
     }
   }
+  // 저장 영역 — 임시 변경이 있을 때만 노출
+  const m = pendingStatus.size;
+  const saveZone = bar.querySelector(".bulk-bar__save");
+  if (saveZone) saveZone.classList.toggle("hidden", m === 0);
+  const pendingCountEl = $("#pending-count");
+  if (pendingCountEl) pendingCountEl.textContent = `변경 ${m}건`;
 }
 
-// 일괄 처리 바 1회 구성 — 내용 주입 + 이벤트 바인딩
+// 처리 상태 바 1회 구성 — 선택/일괄 영역 + 저장 영역 주입 + 이벤트 바인딩
 function buildBulkBar() {
   const bar = $("#bulk-bar");
   if (!bar) return;
   bar.innerHTML = `
-    <label class="bulk-bar__all">
-      <input type="checkbox" id="bulk-select-all"> 전체 선택
-    </label>
-    <span id="bulk-count" class="bulk-bar__count">0건 선택됨</span>
-    <div class="bulk-bar__actions">
-      <button class="btn btn--ghost btn--sm" data-bulk-status="received" disabled>접수 완료</button>
-      <button class="btn btn--primary btn--sm" data-bulk-status="forwarded" disabled>전달 완료</button>
-      <button class="btn btn--tertiary btn--sm" data-bulk-status="pending" disabled>접수 대기</button>
+    <div class="bulk-bar__select">
+      <label class="bulk-bar__all">
+        <input type="checkbox" id="bulk-select-all"> 전체 선택
+      </label>
+      <span id="bulk-count" class="bulk-bar__count">0건 선택됨</span>
+      <div class="bulk-bar__actions">
+        <button class="btn btn--ghost btn--sm" data-bulk-status="received" disabled>접수 완료</button>
+        <button class="btn btn--ghost btn--sm" data-bulk-status="forwarded" disabled>전달 완료</button>
+        <button class="btn btn--ghost btn--sm" data-bulk-status="pending" disabled>접수 대기</button>
+      </div>
+    </div>
+    <div class="bulk-bar__save hidden">
+      <span id="pending-count" class="bulk-bar__pending">변경 0건</span>
+      <button id="discard-btn" class="btn btn--tertiary btn--sm">되돌리기</button>
+      <button id="save-btn" class="btn btn--primary btn--sm">저장</button>
     </div>
   `;
   $("#bulk-select-all").addEventListener("change", (e) => {
@@ -433,15 +527,18 @@ function buildBulkBar() {
     });
     syncBulkBar();
   });
+  // 일괄 변경 — 즉시 저장하지 않고 임시저장 (저장 버튼으로 commit)
   bar.querySelectorAll("[data-bulk-status]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const status = btn.dataset.bulkStatus;
       const ids = [...selectedIds];
       if (!ids.length) return;
-      if (!confirm(`선택한 ${ids.length}건을 '${STATUS_LABEL[status]}'(으)로 변경합니다.`)) return;
-      bulkUpdateStatus(ids, status);
+      for (const id of ids) stageStatus(id, btn.dataset.bulkStatus);
+      rerenderComments();
+      syncBulkBar();
     });
   });
+  $("#save-btn").addEventListener("click", savePendingStatus);
+  $("#discard-btn").addEventListener("click", discardPendingStatus);
 }
 
 // ─────────────────────────────────────────────
@@ -875,15 +972,7 @@ async function init() {
     allComments = [];
     snap.forEach(d => allComments.push({ id: d.id, ...d.data() }));
     // 화면에 최신순으로 표시
-    const sortedDesc = [...allComments].sort((a,b) => {
-      const am = a.createdAt?.toMillis?.() || 0;
-      const bm = b.createdAt?.toMillis?.() || 0;
-      return bm - am;
-    });
-    const original = allComments;
-    allComments = sortedDesc;
-    renderCommentList();
-    allComments = original;
+    rerenderComments();
 
     // 공개 분석은 항상 갱신 (총 건수·워드클라우드·부문 도넛)
     renderPublicAnalytics();
@@ -909,13 +998,7 @@ async function init() {
             commentsPrivateMap.clear();
             snap.forEach(d => commentsPrivateMap.set(d.id, d.data()));
             // 사번 표시 갱신을 위해 리스트 재렌더
-            if (allComments.length) {
-              const sortedDesc = [...allComments].sort((a,b) => (b.createdAt?.toMillis?.()||0) - (a.createdAt?.toMillis?.()||0));
-              const original = allComments;
-              allComments = sortedDesc;
-              renderCommentList();
-              allComments = original;
-            }
+            if (allComments.length) rerenderComments();
           },
           (err) => console.error("[commentsPrivate] listen failed", err)
         );
@@ -927,18 +1010,13 @@ async function init() {
       // 관리자 로그아웃 시 사번 listener 해제 + 메모리 비움
       if (unsubPrivate) { unsubPrivate(); unsubPrivate = null; }
       commentsPrivateMap.clear();
-      // 일괄 선택·상태 팝오버 정리 (bulk-bar 는 syncBulkBar 가 숨김 처리)
+      // 일괄 선택·임시저장·상태 팝오버 정리 (bulk-bar 는 syncBulkBar 가 숨김 처리)
       selectedIds.clear();
+      pendingStatus.clear();
       closeStatusMenu();
     }
     // 댓글 리스트는 상태와 관계없이 버튼 표시 차이만 있으므로 항상 재렌더
-    if (allComments.length) {
-      const sortedDesc = [...allComments].sort((a,b) => (b.createdAt?.toMillis?.()||0) - (a.createdAt?.toMillis?.()||0));
-      const original = allComments;
-      allComments = sortedDesc;
-      renderCommentList();
-      allComments = original;
-    }
+    if (allComments.length) rerenderComments();
   });
 
   // 이벤트 바인딩
@@ -972,13 +1050,10 @@ async function init() {
   });
   document.querySelectorAll("[data-close-edit]").forEach(el => el.addEventListener("click", closeEditModal));
 
+  // 필터 변경 시 재렌더 — 펼침은 접힘으로 리셋 (선택·임시저장 상태는 유지)
   $("#filter-dept").addEventListener("change", () => {
-    // 필터링용: allComments는 asc 순. 표시 시점에 desc로 변환.
-    const sortedDesc = [...allComments].sort((a,b) => (b.createdAt?.toMillis?.()||0) - (a.createdAt?.toMillis?.()||0));
-    const original = allComments;
-    allComments = sortedDesc;
-    renderCommentList();
-    allComments = original;
+    commentsExpanded = false;
+    rerenderComments();
   });
 }
 

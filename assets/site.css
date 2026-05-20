@@ -697,15 +697,14 @@
   background: var(--ej-paper);
   border: 1px solid var(--ej-line);
   border-radius: var(--rad-3);
-  padding: var(--sp-5);
+  padding: var(--sp-4);
 }
-.comment + .comment { margin-top: var(--sp-3); }
 .comment__head {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: var(--sp-3);
+  margin-bottom: var(--sp-2);
 }
 .comment__time { font-size: 11px; color: var(--ej-ink-4); font-variant-numeric: tabular-nums; }
-.comment__body { font-size: 14px; line-height: 1.7; color: var(--ej-ink-2); white-space: pre-wrap; word-break: break-word; }
+.comment__body { font-size: 14px; line-height: 1.55; color: var(--ej-ink-2); white-space: pre-wrap; word-break: break-word; }
 .comment__actions { margin-top: var(--sp-3); display: flex; gap: var(--sp-2); }
 .comment__del,
 .comment__edit {
@@ -753,8 +752,12 @@
 /* ── 댓글 푸터 · 처리 상태 알약 ─────────────────────────────── */
 .comment__foot {
   display: flex; justify-content: space-between; align-items: center;
-  gap: var(--sp-3); margin-top: var(--sp-3);
+  gap: var(--sp-3); margin-top: var(--sp-2);
 }
+
+/* 전체보기 / 최근 의견만 보기 토글 */
+.comments-toggle { display: flex; justify-content: center; margin-top: var(--sp-2); }
+.comments-toggle .btn { min-width: 200px; }
 .comment__check {
   flex: 0 0 auto; margin: 0 var(--sp-2) 0 0;
   accent-color: var(--ej-red); cursor: pointer;
@@ -775,16 +778,22 @@
 }
 .status-pill--editable::after { content: "▾"; font-size: 9px; opacity: .65; }
 .status-pill--editable:hover { filter: brightness(0.94); }
+/* 미저장 변경 — 점선 링으로 표시 */
+.status-pill--dirty { outline: 1.5px dashed currentColor; outline-offset: 2px; }
 
-/* 일괄 처리 바 — 관리자 전용 */
+/* 처리 상태 바 — 관리자 전용 (선택·일괄 / 임시변경 저장) */
 .bulk-bar {
-  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+  display: flex; align-items: center; gap: var(--sp-3) var(--sp-4); flex-wrap: wrap;
   background: var(--ej-surface);
   border: 1px solid var(--ej-line);
   border-radius: var(--rad-3);
   padding: var(--sp-3) var(--sp-4);
   margin-bottom: var(--sp-3);
 }
+.bulk-bar__select, .bulk-bar__save {
+  display: flex; align-items: center; gap: var(--sp-2) var(--sp-3); flex-wrap: wrap;
+}
+.bulk-bar__save { margin-left: auto; }
 .bulk-bar__all {
   display: inline-flex; align-items: center; gap: 6px;
   font: 600 12px/1 var(--ej-font); color: var(--ej-ink-2);
@@ -795,8 +804,12 @@
   font: 500 12px/1 var(--ej-font); color: var(--ej-ink-3);
   font-variant-numeric: tabular-nums;
 }
-.bulk-bar__actions { display: flex; gap: var(--sp-2); margin-left: auto; }
-.bulk-bar__actions .btn:disabled { opacity: .45; cursor: not-allowed; }
+.bulk-bar__actions { display: flex; gap: var(--sp-2); }
+.bulk-bar__pending {
+  font: 700 12px/1 var(--ej-font); color: var(--ej-red);
+  font-variant-numeric: tabular-nums;
+}
+.bulk-bar .btn:disabled { opacity: .45; cursor: not-allowed; }
 
 /* 개별 상태 변경 팝오버 */
 .status-menu {
@@ -821,8 +834,9 @@
 }
 
 @media (max-width: 480px) {
-  .bulk-bar { gap: var(--sp-2); }
-  .bulk-bar__actions { margin-left: 0; width: 100%; }
+  .bulk-bar__select, .bulk-bar__save { width: 100%; }
+  .bulk-bar__save { margin-left: 0; justify-content: flex-end; }
+  .bulk-bar__actions { width: 100%; }
   .bulk-bar__actions .btn { flex: 1; }
 }
 
@@ -855,6 +869,10 @@
 .divider { height: 1px; background: var(--ej-line); margin: var(--sp-5) 0; border: none; }
 @media (min-width: 768px) { .divider { margin: var(--sp-7) 0; } }
 
+/* ── 헤더 ↔ 본문 간격 축소 (불필요한 빈 여백 제거) ── */
+.topic-hero { padding-bottom: var(--sp-4); }
+.topic-layout__compose, .topic-layout__list { padding-top: var(--sp-4); }
+
 /* ── 의견 작성 영역 컴팩트화 (sticky 컬럼·모바일 양쪽 유리) ── */
 .topic-layout__compose > .h-section { margin: 0 0 var(--sp-4); }
 #compose-area .stack--loose { gap: var(--sp-4); }
@@ -868,13 +886,20 @@
   #compose-area              { padding: var(--sp-4); }
   #compose-area .input,
   #compose-area .select      { height: 44px; }
-  #compose-area .textarea    { min-height: 132px; }
+  #compose-area .textarea    { min-height: 120px; }
   .compose-grid              { grid-template-columns: minmax(0, 1fr); }
+  /* 모바일 작성 폼 컴팩트화 */
+  .topic-layout__compose > .h-section       { font-size: 20px; margin: 0 0 var(--sp-3); }
+  #compose-area .stack--loose               { gap: var(--sp-3); }
+  #compose-area .alert--notice              { padding: var(--sp-3) var(--sp-4); font-size: 12px; }
+  #compose-area .alert--notice .notice-list { margin-top: 4px; gap: 3px; }
+  #compose-area .field                      { gap: 4px; }
 }
 
 /* ── 초소형(sm) — 카드 내부 패딩 축소로 좌우 여백 균형 ──── */
 @media (max-width: 480px) {
-  .chart-card, .topic-card, .comment, .kpi { padding: var(--sp-4); }
+  .chart-card, .topic-card, .kpi { padding: var(--sp-4); }
+  .comment { padding: var(--sp-3) var(--sp-4); }
 }
 
 /* ── Mobile topbar nav — 좁은 폰에서 일부 링크 숨김 (B-5) ─ */
