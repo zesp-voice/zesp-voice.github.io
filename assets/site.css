@@ -881,7 +881,8 @@
 /* ── 의견 작성 영역 컴팩트화 (sticky 컬럼·모바일 양쪽 유리) ── */
 .topic-layout__compose > .h-section { margin: 0 0 var(--sp-4); }
 #compose-area .stack--loose { gap: var(--sp-4); }
-#compose-area .textarea    { min-height: 150px; }
+/* 안내 placeholder(여러 줄)가 잘리지 않도록 충분한 높이 확보 */
+#compose-area .textarea    { min-height: 210px; }
 .compose-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -891,7 +892,6 @@
   #compose-area              { padding: var(--sp-4); }
   #compose-area .input,
   #compose-area .select      { height: 44px; }
-  #compose-area .textarea    { min-height: 120px; }
   .compose-grid              { grid-template-columns: minmax(0, 1fr); }
   /* 모바일 작성 폼 컴팩트화 */
   .topic-layout__compose > .h-section       { font-size: 20px; margin: 0 0 var(--sp-3); }
