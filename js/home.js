@@ -68,13 +68,9 @@ async function init() {
     $("#active-count").textContent = active.length ? `${active.length}개 진행 중` : "";
     $("#closed-count").textContent = closed.length ? `${closed.length}개 보관됨` : "";
 
-    // 3개 초과로 가려진 주제가 있으면 전체보기 CTA 노출
-    const moreEl = $("#topics-more");
-    if (moreEl) {
-      moreEl.innerHTML = (active.length > 3 || closed.length > 3)
-        ? `<a class="btn btn--ghost" href="./topics.html">전체 주제 보기 →</a>`
-        : "";
-    }
+    // 3개 초과 섹션에만 헤더 '전체보기' 링크 노출 (주제 페이지로 이동)
+    $("#active-more")?.classList.toggle("hidden", active.length <= 3);
+    $("#closed-more")?.classList.toggle("hidden", closed.length <= 3);
 
     $("#stat-active").textContent = active.length;
     $("#stat-comments").textContent = totalComments.toLocaleString();

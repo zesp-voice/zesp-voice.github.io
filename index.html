@@ -63,9 +63,12 @@
 </section>
 
 <main class="wrap section home-main">
-  <div class="row row--between" style="margin-bottom: var(--sp-5);">
+  <div class="row" style="flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-5);">
     <h2 class="h-section" style="margin: 0;">진행 중인 주제</h2>
-    <span class="text-mute text-small" id="active-count"></span>
+    <div class="row" style="gap: var(--sp-2); margin-left: auto;">
+      <a id="active-more" class="section-more hidden" href="./topics.html">전체보기 ›</a>
+      <span class="text-mute text-small" id="active-count"></span>
+    </div>
   </div>
   <div id="active-topics" class="card-grid">
     <div class="empty" style="grid-column: 1 / -1;">
@@ -76,13 +79,14 @@
 
   <hr class="divider" id="closed">
 
-  <div class="row row--between" style="margin-bottom: var(--sp-5);">
+  <div class="row" style="flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-5);">
     <h2 class="h-section" style="margin: 0;">지난 주제</h2>
-    <span class="text-mute text-small" id="closed-count"></span>
+    <div class="row" style="gap: var(--sp-2); margin-left: auto;">
+      <a id="closed-more" class="section-more hidden" href="./topics.html">전체보기 ›</a>
+      <span class="text-mute text-small" id="closed-count"></span>
+    </div>
   </div>
   <div id="closed-topics" class="card-grid"></div>
-
-  <div id="topics-more" class="topics-more"></div>
 </main>
 
 <footer class="footer">

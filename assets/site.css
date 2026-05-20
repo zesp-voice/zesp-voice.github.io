@@ -464,9 +464,16 @@
 @media (min-width: 768px)  { .card-grid { gap: var(--sp-5); grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1040px) { .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
-/* 홈 — 전체 주제 보기 CTA (가려진 주제가 있을 때만 노출) */
-.topics-more { display: flex; justify-content: center; margin-top: var(--sp-6); }
-.topics-more:empty { display: none; }
+/* 홈 — 섹션 헤더 '전체보기' 링크 (카운트 좌측, 주제 페이지로 이동) */
+.section-more {
+  display: inline-flex; align-items: center; gap: 3px;
+  font: 700 11px/1 var(--ej-font); color: var(--ej-red);
+  text-decoration: none; white-space: nowrap;
+  border: 1px solid var(--ej-line); border-radius: var(--rad-pill);
+  padding: 5px 11px;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.section-more:hover { background: var(--ej-red-wash); border-color: var(--ej-red); }
 
 .topic-card {
   background: var(--ej-paper);
@@ -541,6 +548,16 @@
   font-size: var(--fs-caption); color: var(--ej-ink-3);
 }
 .topic-card__meta strong { color: var(--ej-ink-2); font-weight: 800; }
+
+/* 모바일 — 주제 카드 컴팩트화 (한 화면에 더 많이 보이도록) */
+@media (max-width: 767px) {
+  .card-grid          { gap: var(--sp-3); }
+  .topic-card         { padding: var(--sp-4); gap: var(--sp-3); border-radius: var(--rad-3); }
+  .topic-card__emoji  { font-size: 22px; }
+  .topic-card__title  { font-size: 17px; }
+  .topic-card__desc   { font-size: 12px; line-height: 1.6; -webkit-line-clamp: 2; }
+  .topic-card__meta   { padding-top: var(--sp-2); }
+}
 
 /* ── Badges (디자인 시스템 차용) ───────────────────────────── */
 .badge {
