@@ -420,7 +420,7 @@
   position: absolute; left: 0; top: 18px; bottom: 18px;
   width: 4px;
   border-radius: 4px;
-  background: linear-gradient(180deg, var(--ej-navy), color-mix(in srgb, var(--ej-navy) 60%, var(--ej-red)));
+  background: var(--ej-teal);
 }
 .about-note ul {
   margin: 0;
@@ -649,7 +649,7 @@
   align-items: flex-start;
 }
 .alert--danger { background: var(--ej-red-wash); color: var(--ej-red-deep); border-left: 4px solid var(--ej-red); }
-.alert--notice { background: var(--ej-surface); color: var(--ej-ink); border-left: 4px solid var(--ej-gray-dark); }
+.alert--notice { background: var(--ej-surface); color: var(--ej-ink); border-left: 4px solid var(--ej-teal); }
 .alert--success { background: var(--ej-teal-tint); color: var(--ej-teal); border-left: 4px solid var(--ej-teal); }
 .alert b { display: block; margin-bottom: 4px; font-weight: 800; }
 
