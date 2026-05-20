@@ -130,7 +130,7 @@ function renderHeader(t) {
   const dday = ddayBadgeHTML(t, "의견 접수 종료");
 
   $("#topic-header").innerHTML = `
-    <div class="eyebrow">VOICE OF EASTARJET</div>
+    <div class="eyebrow">VOICE OF CHANGE</div>
     <div class="row" style="gap: var(--sp-3); margin: var(--sp-3) 0 var(--sp-4);">
       <span class="topic-header__emoji">${emojiHTML(t.coverEmoji || "✈️", "flag-emoji--lg")}</span>
       <h1 style="margin: 0; font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;">${esc(t.title || "(제목 없음)")}</h1>
