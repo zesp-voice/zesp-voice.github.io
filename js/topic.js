@@ -194,7 +194,8 @@ async function submitComment() {
     $("#employee-id").value = "";
     $("#comment-private").checked = false;
     $("#counter").textContent = "0";
-    toast(msgEl, "success", "<b>의견이 등록되었습니다</b>참여해 주셔서 감사합니다.");
+    msgEl.classList.add("hidden");
+    $("#submit-modal").classList.remove("hidden");
   } catch (e) {
     console.error(e);
     toast(msgEl, "danger", `<b>등록에 실패했습니다</b>${esc(e.message || "")}`);
@@ -774,6 +775,11 @@ async function init() {
     c.parentElement.classList.toggle("field__counter--warn", len > 1400);
   });
   $("#submit-btn").addEventListener("click", submitComment);
+
+  // 등록 완료 모달 — 확인 버튼으로 닫기
+  $("#submit-modal-ok").addEventListener("click", () => {
+    $("#submit-modal").classList.add("hidden");
+  });
 
   // 삭제 모달
   $("#delete-confirm").addEventListener("click", confirmDelete);

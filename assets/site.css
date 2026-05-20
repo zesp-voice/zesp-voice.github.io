@@ -606,9 +606,14 @@
 
 /* ── Inputs ───────────────────────────────────────────────── */
 .field { display: flex; flex-direction: column; gap: 6px; }
-.field > label {
+.field > label,
+.field__labelrow > label:first-of-type {
   font-size: var(--fs-eyebrow); letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--ej-ink-3); font-weight: 800;
+}
+.field__labelrow {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-3);
 }
 .input, .textarea, .select {
   font: 500 15px var(--ej-font); color: var(--ej-ink);
@@ -727,14 +732,14 @@
   letter-spacing: 0.04em;
 }
 
-/* 작성 폼 — 비공개 제출 체크박스 */
+/* 작성 폼 — 비공개 제출 체크박스 (의견 라벨 행 우측 인라인) */
 .private-check {
-  display: flex; gap: var(--sp-2); align-items: flex-start;
-  font-size: 12px; line-height: 1.6; color: var(--ej-ink-3);
-  cursor: pointer;
+  display: inline-flex; gap: 6px; align-items: center;
+  font-size: 12px; color: var(--ej-ink-3);
+  cursor: pointer; white-space: nowrap;
+  text-transform: none; letter-spacing: normal; font-weight: 500;
 }
-.private-check input { margin-top: 2px; flex: 0 0 auto; accent-color: var(--ej-red); }
-.private-check b { color: var(--ej-ink-2); font-weight: 800; }
+.private-check input { margin: 0; flex: 0 0 auto; accent-color: var(--ej-red); }
 
 /* ── Eyebrow / Title pattern ───────────────────────────────── */
 .eyebrow {
