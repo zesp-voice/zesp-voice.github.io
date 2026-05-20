@@ -215,7 +215,7 @@ function topicRowHTML(t, id) {
         <div class="row">
           <a class="btn btn--tertiary btn--sm" href="topic.html?id=${encodeURIComponent(id)}" target="_blank">미리보기</a>
           <button class="btn btn--ghost btn--sm" data-act="qr" data-id="${id}">QR</button>
-          <button class="btn btn--ghost btn--sm" data-act="export" data-id="${id}">CSV</button>
+          <button class="btn btn--ghost btn--sm" data-act="export" data-id="${id}">XLSX</button>
           <button class="btn btn--secondary btn--sm" data-act="edit" data-id="${id}">편집</button>
         </div>
       </div>
@@ -238,7 +238,7 @@ function listenTopics() {
         const act = btn.dataset.act;
         if (act === "edit") openEditModal(id);
         else if (act === "qr") openQRModal(id);
-        else if (act === "export") exportTopicCSV(id);
+        else if (act === "export") exportTopicXLSX(id);
       });
     });
   }, (err) => {
@@ -458,64 +458,85 @@ async function fetchAllCommentsOf(topicId) {
   });
 }
 
-async function exportTopicCSV(topicId) {
-  toast($("#ops-msg"), "notice", "<b>CSV 내보내는 중…</b>잠시만 기다려주세요.");
+// 주제 1개 → 워크시트용 행 배열 (상단 주제 메타 + 댓글 테이블)
+function topicSheetRows(t, topicId, comments) {
+  const rows = [
+    ["주제", t.title || topicId],
+    ["마감일", fmtDate(t.dueAt), "상태", t.status || ""],
+    [],
+    ["부문", "사번", "의견", "작성시각", "주요키워드"]
+  ];
+  for (const c of comments) {
+    const tokens = topKeywords(countKeywords([c]), { topN: 5, minCount: 1 }).map(([w]) => w).join(", ");
+    rows.push([
+      c.department || "", c.employeeId || "", c.content || "",
+      c.createdAt?.toDate ? fmtDateTime(c.createdAt) : "", tokens
+    ]);
+  }
+  return rows;
+}
+
+// 엑셀 시트명 규칙 (31자 이내, \ / ? * [ ] : 금지, 중복 불가)
+function safeSheetName(name, index, used) {
+  let base = String(name || `주제${index + 1}`)
+    .replace(/[\\\/\?\*\[\]:]/g, " ")
+    .trim()
+    .slice(0, 28);
+  if (!base) base = `주제${index + 1}`;
+  let final = base, n = 2;
+  while (used.has(final)) { final = `${base.slice(0, 25)}_${n}`; n++; }
+  used.add(final);
+  return final;
+}
+
+// sheets: [{ name, rows }] → 멀티시트 xlsx 다운로드
+function downloadXLSX(sheets, filename) {
+  const wb = XLSX.utils.book_new();
+  const used = new Set();
+  sheets.forEach((s, i) => {
+    const ws = XLSX.utils.aoa_to_sheet(s.rows);
+    XLSX.utils.book_append_sheet(wb, ws, safeSheetName(s.name, i, used));
+  });
+  XLSX.writeFile(wb, filename);
+}
+
+async function exportTopicXLSX(topicId) {
+  toast($("#ops-msg"), "notice", "<b>XLSX 내보내는 중…</b>잠시만 기다려주세요.");
   try {
     const tSnap = await getDoc(doc(db, "topics", topicId));
     const t = tSnap.data() || {};
     const comments = await fetchAllCommentsOf(topicId);
-    const rows = [["주제ID","주제","부문","사번","의견","작성시각","주요키워드"]];
-    for (const c of comments) {
-      const tokens = topKeywords(countKeywords([c]), { topN: 5, minCount: 1 }).map(([w]) => w).join(",");
-      rows.push([
-        topicId, t.title || "", c.department || "", c.employeeId || "", c.content || "",
-        c.createdAt?.toDate ? fmtDateTime(c.createdAt) : "", tokens
-      ]);
-    }
-    downloadCSV(rows, `${(t.title || topicId).replace(/[\\/:*?"<>|]/g,"_")}_의견_${new Date().toISOString().slice(0,10)}.csv`);
+    downloadXLSX(
+      [{ name: t.title || topicId, rows: topicSheetRows(t, topicId, comments) }],
+      `${(t.title || topicId).replace(/[\\/:*?"<>|]/g, "_")}_의견_${new Date().toISOString().slice(0,10)}.xlsx`
+    );
     toast($("#ops-msg"), "success", `<b>완료</b>${comments.length}건의 의견을 내보냈습니다.`);
   } catch (e) {
     toast($("#ops-msg"), "danger", `<b>실패</b>${esc(e.message)}`);
   }
 }
 
-async function exportAllCSV() {
+async function exportAllXLSX() {
   toast($("#ops-msg"), "notice", "<b>전체 데이터 내보내는 중…</b>");
   try {
     const tSnap = await getDocs(query(collection(db, "topics"), orderBy("createdAt", "desc")));
-    const rows = [["주제ID","주제","상태","마감일","부문","사번","의견","작성시각","주요키워드"]];
+    const sheets = [];
     let total = 0;
     for (const tDoc of tSnap.docs) {
       const t = tDoc.data();
       const comments = await fetchAllCommentsOf(tDoc.id);
-      for (const c of comments) {
-        const tokens = topKeywords(countKeywords([c]), { topN: 5, minCount: 1 }).map(([w]) => w).join(",");
-        rows.push([
-          tDoc.id, t.title || "", t.status || "", fmtDate(t.dueAt),
-          c.department || "", c.employeeId || "", c.content || "",
-          c.createdAt?.toDate ? fmtDateTime(c.createdAt) : "", tokens
-        ]);
-      }
+      sheets.push({ name: t.title || tDoc.id, rows: topicSheetRows(t, tDoc.id, comments) });
       total += comments.length;
     }
-    downloadCSV(rows, `eastar-changemgmt-전체_${new Date().toISOString().slice(0,10)}.csv`);
-    toast($("#ops-msg"), "success", `<b>완료</b>총 ${total}건 내보냄.`);
+    if (!sheets.length) {
+      toast($("#ops-msg"), "notice", "<b>내보낼 주제가 없습니다</b>");
+      return;
+    }
+    downloadXLSX(sheets, `eastar-changemgmt-전체_${new Date().toISOString().slice(0,10)}.xlsx`);
+    toast($("#ops-msg"), "success", `<b>완료</b>${sheets.length}개 주제 · 총 ${total}건 내보냄.`);
   } catch (e) {
     toast($("#ops-msg"), "danger", `<b>실패</b>${esc(e.message)}`);
   }
-}
-
-function downloadCSV(rows, filename) {
-  const csv = "﻿" + rows.map(r => r.map(cell => {
-    const s = String(cell ?? "");
-    if (/[",\n\r]/.test(s)) return `"${s.replaceAll('"','""')}"`;
-    return s;
-  }).join(",")).join("\r\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // ─────────────────────────────────────────────
@@ -591,7 +612,7 @@ function bindUI() {
   $("#new-topic-btn").addEventListener("click", () => openEditModal(null));
   $("#topic-save").addEventListener("click", saveTopic);
   $("#topic-delete").addEventListener("click", deleteCurrentTopic);
-  $("#export-all-btn").addEventListener("click", exportAllCSV);
+  $("#export-all-btn").addEventListener("click", exportAllXLSX);
   $("#sync-sheets-btn").addEventListener("click", triggerSheetsSync);
   $("#qr-download").addEventListener("click", downloadQR);
   $("#site-qr-btn").addEventListener("click", openSiteQRModal);
