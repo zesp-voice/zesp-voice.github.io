@@ -15,6 +15,11 @@
 
 .wrap--narrow { max-width: 520px; }
 
+/* 모바일 — 좌우 여백 절반으로 (좁은 화면에서 콘텐츠 폭 확보) */
+@media (max-width: 767px) {
+  .wrap { padding-left: var(--sp-5); padding-right: var(--sp-5); }
+}
+
 /* 수직 padding 만 설정 — longhand 사용 이유:
    .wrap 과 같은 element 에 함께 쓰일 때(예: <main class="wrap section">)
    shorthand 'padding: a 0' 가 .wrap 의 horizontal padding 을 0 으로 덮어쓰는 버그 회피 */
