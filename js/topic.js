@@ -767,6 +767,12 @@ function renderKPI() {
 }
 
 // ── 워드클라우드 (d3-cloud SVG) — 공개 ─────────────────────
+// 키워드별 색상 — 부문 팔레트와 같은 11색 계열, 흰 배경 가독성에 맞춰 명도 조정.
+// 빈도는 글자 크기로만 표현하고, 색은 키워드 순서대로 순환 적용.
+const WC_PALETTE = [
+  "#3D6CB8", "#D8593F", "#1C8E84", "#C2557F", "#B07E14", "#6C7378",
+  "#6664C4", "#5F8A39", "#BE5E76", "#4D85A8", "#5A6470"
+];
 function renderWordcloud() {
   const counter = countKeywords(allComments, stopwordsExtra);
   const top = topKeywords(counter, { topN: 60, minCount: 3 });
@@ -797,7 +803,9 @@ function renderWordcloud() {
     return 14 + (freq - minFreq) / (maxFreq - minFreq) * 42;
   };
   const fontFamily = getComputedStyle(document.body).getPropertyValue("--ej-font").trim() || "Noto Sans KR";
-  const words = top.map(([text, freq]) => ({ text, freq, size: sizeOf(freq) }));
+  const words = top.map(([text, freq], i) => ({
+    text, freq, size: sizeOf(freq), color: WC_PALETTE[i % WC_PALETTE.length]
+  }));
 
   d3.layout.cloud()
     .size([width, height])
@@ -824,20 +832,13 @@ function renderWordcloud() {
     g.setAttribute("transform", `translate(${width/2},${height/2})`);
 
     for (const w of placed) {
-      const fill =
-        w.freq >  maxFreq * 0.7 ? CHART_COLORS.red :
-        w.freq >  maxFreq * 0.5 ? CHART_COLORS.redDeep :
-        w.freq >  maxFreq * 0.3 ? CHART_COLORS.navy :
-                                   CHART_COLORS.ink3;
-      const weight = w.freq > maxFreq * 0.5 ? 700 : 500;
-
       const text = document.createElementNS(NS, "text");
       text.setAttribute("text-anchor", "middle");
       text.setAttribute("transform", `translate(${w.x},${w.y}) rotate(${w.rotate})`);
       text.setAttribute("font-size", w.size);
       text.setAttribute("font-family", w.font);
-      text.setAttribute("font-weight", weight);
-      text.setAttribute("fill", fill);
+      text.setAttribute("font-weight", 700);
+      text.setAttribute("fill", w.color || WC_PALETTE[0]);
       text.style.cursor = "default";
       text.textContent = w.text;
 
