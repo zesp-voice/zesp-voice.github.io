@@ -600,6 +600,7 @@
 .dept[data-color="indigo"]    { background: #ECEBF9; color: #514F9B; }
 .dept[data-color="rose"]      { background: #FBE9EE; color: #A64F67; }
 .dept[data-color="moss"]      { background: #EAF3DE; color: #54753A; }
+.dept[data-color="clay"]      { background: #F4EBDB; color: #7A5524; }
 /* 부문 식별 이모지 — OS 네이티브 컬러 이모지 폰트 강제 (iOS·Win·macOS·Android 일관 렌더) */
 .dept__emoji {
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;

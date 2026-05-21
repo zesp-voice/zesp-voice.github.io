@@ -11,6 +11,7 @@ export const DEFAULT_DEPARTMENTS = [
   { name: "통제",   colorToken: "indigo" },
   { name: "커머셜", colorToken: "rose" },
   { name: "IT",     colorToken: "moss" },
+  { name: "케이터링", colorToken: "clay" },
   { name: "기타",   colorToken: "gray" }
 ];
 
@@ -26,7 +27,8 @@ export const DEPT_COLOR_HEX = {
   steel: "#86B8D4",
   indigo: "#8886DA",
   rose: "#E198AB",
-  moss: "#96C56A"
+  moss: "#96C56A",
+  clay: "#C0894C"
 };
 
 // 부문 → 식별 이모지. 접수 상태 알약과 시각적으로 구분되도록 칩 앞에 표시.
@@ -42,6 +44,7 @@ export const DEPT_EMOJI = {
   "통제":   "🎧",
   "커머셜": "📈",
   "IT":     "💻",
+  "케이터링": "🍽️",
   "기타":   "📁"
 };
 export function deptEmojiOf(name) {
