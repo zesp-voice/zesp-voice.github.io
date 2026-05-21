@@ -14,20 +14,39 @@ export const DEFAULT_DEPARTMENTS = [
   { name: "기타",   colorToken: "gray" }
 ];
 
-// 부문 → Extended palette hex (Chart.js용)
+// 부문 → 차트 색상 hex (도넛 차트). 칩 색상(site.css .dept[data-color])과 같은 색상 계열로 통일.
 export const DEPT_COLOR_HEX = {
-  navy: "#1B2A4E",
-  teal: "#2E7E80",
-  amber: "#E8A33D",
-  coral: "#F26A5A",
-  plum: "#5C2440",
-  "gray-dark": "#30383C",
-  gray: "#9EA2A1",
-  steel: "#5B7C99",
-  indigo: "#4C4A8F",
-  rose: "#C77B8B",
-  moss: "#6E8B4A"
+  navy: "#4A78C2",
+  teal: "#2FB6AA",
+  amber: "#F4B73E",
+  coral: "#FA7E66",
+  plum: "#CB6390",
+  "gray-dark": "#828F9C",
+  gray: "#A8AFB2",
+  steel: "#86B8D4",
+  indigo: "#8886DA",
+  rose: "#E198AB",
+  moss: "#96C56A"
 };
+
+// 부문 → 식별 이모지. 접수 상태 알약과 시각적으로 구분되도록 칩 앞에 표시.
+// iOS·Windows·macOS·Android 공통 지원되는 단일 코드포인트 위주로 선정.
+export const DEPT_EMOJI = {
+  "안전":   "🛡️",
+  "보안":   "🔒",
+  "운송":   "🧳",
+  "운항":   "✈️",
+  "객실":   "💺",
+  "정비":   "🔧",
+  "경영":   "💼",
+  "통제":   "🎧",
+  "커머셜": "📈",
+  "IT":     "💻",
+  "기타":   "📁"
+};
+export function deptEmojiOf(name) {
+  return DEPT_EMOJI[name] || "";
+}
 
 // 의견 처리 상태 — 접수 대기 → 접수 완료 → 전달 완료
 export const STATUS_ORDER = ['pending', 'received', 'forwarded'];
@@ -178,10 +197,12 @@ export function toast(target, type, html) {
   target.classList.remove("hidden");
 }
 
-// 부문 색 토큰을 chip HTML로
+// 부문 색 토큰을 chip HTML로 — 식별 이모지 + 부문명
 export function deptChipHTML(deptName, deptList) {
   const color = deptColorOf(deptName, deptList);
-  return `<span class="dept" data-color="${color}">${esc(deptName || "기타")}</span>`;
+  const emoji = deptEmojiOf(deptName);
+  const icon = emoji ? `<span class="dept__emoji" aria-hidden="true">${emoji}</span>` : "";
+  return `<span class="dept" data-color="${color}">${icon}${esc(deptName || "기타")}</span>`;
 }
 
 // 주제 카드 HTML — 홈·주제 페이지 공용

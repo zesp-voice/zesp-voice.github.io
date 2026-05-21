@@ -587,17 +587,25 @@
   padding: 5px 10px; border-radius: var(--rad-pill);
   letter-spacing: 0.04em; white-space: nowrap;
 }
-.dept[data-color="navy"]  { background: var(--ej-navy-tint);  color: var(--ej-navy); }
-.dept[data-color="teal"]  { background: var(--ej-teal-tint);  color: var(--ej-teal); }
-.dept[data-color="amber"] { background: var(--ej-amber-tint); color: #6d4a0a; }
-.dept[data-color="coral"] { background: var(--ej-coral-tint); color: #8a2f20; }
-.dept[data-color="plum"]  { background: var(--ej-plum-tint);  color: var(--ej-plum); }
-.dept[data-color="gray-dark"] { background: var(--ej-line); color: var(--ej-gray-dark); }
-.dept[data-color="gray"]  { background: var(--ej-line-2); color: var(--ej-ink-3); }
-.dept[data-color="steel"]  { background: var(--ej-steel-tint);  color: #3E5A73; }
-.dept[data-color="indigo"] { background: var(--ej-indigo-tint); color: #3A3870; }
-.dept[data-color="rose"]   { background: var(--ej-rose-tint);   color: #9A4F5E; }
-.dept[data-color="moss"]   { background: var(--ej-moss-tint);   color: #4F6633; }
+/* 부문 칩 색상 — 도넛 차트(utils.js DEPT_COLOR_HEX)와 같은 색상 계열로 통일.
+   배경 = 옅은 틴트 / 글자 = 같은 색상의 진한 톤 (도넛은 선명한 채움색) */
+.dept[data-color="navy"]      { background: #E7EDF7; color: #2D5596; }
+.dept[data-color="teal"]      { background: #DDF2F0; color: #1C7B73; }
+.dept[data-color="amber"]     { background: #FCF1D8; color: #876012; }
+.dept[data-color="coral"]     { background: #FEE8E2; color: #BE4733; }
+.dept[data-color="plum"]      { background: #F7E4ED; color: #9A3D64; }
+.dept[data-color="gray-dark"] { background: #EBEDF0; color: #4D5760; }
+.dept[data-color="gray"]      { background: #EDEFEF; color: #5B6164; }
+.dept[data-color="steel"]     { background: #E7F1F8; color: #3D6A85; }
+.dept[data-color="indigo"]    { background: #ECEBF9; color: #514F9B; }
+.dept[data-color="rose"]      { background: #FBE9EE; color: #A64F67; }
+.dept[data-color="moss"]      { background: #EAF3DE; color: #54753A; }
+/* 부문 식별 이모지 — OS 네이티브 컬러 이모지 폰트 강제 (iOS·Win·macOS·Android 일관 렌더) */
+.dept__emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 12px; line-height: 1; letter-spacing: 0;
+  margin-right: 1px;
+}
 
 /* ── Buttons ──────────────────────────────────────────────── */
 .btn {
