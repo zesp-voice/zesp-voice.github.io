@@ -797,8 +797,9 @@
   padding: 4px 10px; border-radius: var(--rad-pill);
   white-space: nowrap;
 }
-.status-pill--wait { background: var(--ej-line-2);    color: var(--ej-ink-3); }
-.status-pill--recv { background: var(--ej-steel-tint); color: #3E5A73; }
+/* 처리 상태 — 신호등 색상으로 구분: 대기(빨강) → 접수(노랑) → 전달(초록) */
+.status-pill--wait { background: var(--ej-red-tint);   color: var(--ej-red-deep); }
+.status-pill--recv { background: var(--ej-amber-tint); color: #8A5A00; }
 .status-pill--done { background: var(--ej-teal-tint);  color: var(--ej-teal); }
 .status-pill--editable {
   border: none; cursor: pointer;

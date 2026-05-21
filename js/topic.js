@@ -397,6 +397,7 @@ async function savePendingStatus() {
       console.error("[status] save partial failure", results);
       alert(`${entries.length}건 중 ${failed}건 저장에 실패했습니다. 실패한 변경은 그대로 남아 있습니다.`);
     }
+    selectedIds.clear();   // 저장 후 의견 선택(체크박스) 전체 해제
     rerenderComments();
     syncBulkBar();
   } catch (e) {
@@ -505,9 +506,9 @@ function buildBulkBar() {
       </label>
       <span id="bulk-count" class="bulk-bar__count">0건 선택됨</span>
       <div class="bulk-bar__actions">
+        <button class="btn btn--ghost btn--sm" data-bulk-status="pending" disabled>접수 대기</button>
         <button class="btn btn--ghost btn--sm" data-bulk-status="received" disabled>접수 완료</button>
         <button class="btn btn--ghost btn--sm" data-bulk-status="forwarded" disabled>전달 완료</button>
-        <button class="btn btn--ghost btn--sm" data-bulk-status="pending" disabled>접수 대기</button>
       </div>
     </div>
     <div class="bulk-bar__save hidden">
